@@ -12,6 +12,8 @@ library(maps)
 library(ggiraph)
 # Colours
 library(RColorBrewer)
+# Data frame re-format
+library(reshape2)
 
 #### EXTRACT DATA
 # Function to create a covid data frame
@@ -151,9 +153,10 @@ get_data <- function(website, table_name) {
   dat$tests_per1m <- as.numeric(gsub(",", "", dat$tests_per1m))
   dat$population <- as.numeric(gsub(",", "", dat$population))
   
-  # Reformat data frame
-  dat <- melt(dat, id = "region", value.name = "numeric", variable.name = "choice")
-  
+  # Reformat data frame, delete any rows with NAs
+  dat <- drop_na(melt(dat, id = "region", value.name = "numeric", 
+                      variable.name = "choice"))
+
   # Create final data frame containing only necessary data
   return(dat)
 }
@@ -214,31 +217,33 @@ map <- function(data = dat, world_map = get_world_map(), choice) {
   # Selected plot look, function
   created_theme <- function () { 
     theme_minimal() + 
-    theme(axis.title = element_blank(),
+    theme(panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          axis.title = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           panel.background = element_blank(), 
-          panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank(),
           panel.border = element_blank(), 
           strip.background = element_rect(fill = "red", colour = "red"),
           legend.position = "top")
   }
   
   # User selects the column displayed
-  data_plot <- data[data$choice == choice, ]
+  df_map <- data[data$choice == choice, ]
   # In case the data column has missing values
-  data_plot <- data_plot[!is.na(data_plot$choice), ]
+  df_map <- df_map[!is.na(df_map$choice), ]
   
   # Duplicate data to the map data frame
   world_map["choice"] <- rep(choice, nrow(world_map))
-  world_map["numeric"] <- data_plot$numeric[match(world_map$region, 
-                                                  data_plot$region)]
+  world_map["numeric"] <- df_map$numeric[match(world_map$region, 
+                                               df_map$region)]
   
   # Use ggplot to plot the map
   plot_map <- ggplot() + 
-    geom_polygon_interactive(data = world_map,
-                             aes(x = long, y = lat, fill = numeric)) + 
+    geom_polygon_interactive(data = subset(world_map), color = 'darkgray', size = 0.2,
+                             aes(x = long, y = lat, fill = numeric, group = group, 
+                                 tooltip = sprintf("%s<br/>%s", region, numeric))) + 
+    scale_fill_gradientn(colours = brewer.pal("BuPu"), na.value = 'white') + 
     created_theme()
   
   # Return the plot
