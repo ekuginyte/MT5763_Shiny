@@ -205,7 +205,6 @@ dat <- get_data(website = "https://www.worldometers.info/coronavirus/",
 
 #### END OF EXTRACTING DATA
 
-
 #### BUILD THE BASE MAP
 # Function to create the base map
 #   INPUTS:
@@ -254,18 +253,33 @@ map <- function(data = dat, world_map = get_world_map(), input_choice) {
 
 
 #### SERVER CODE
-server <- function(input, output) {
+server <- function(input, output){
   
   # Plot the world map 
   output$distPlot <- renderGirafe({
     ggiraph(code = print(map(input_choice =  input$choice)))
   })
   
-  # Save plot and dataset
+  # Save plot and data set
   observeEvent(input$getCurrentData, {
     ggsave("map.jpg")
-    saveRDS(dat)
   })  
+  
+    
+  dfInput <- reactive({
+    get.df(input$dataFormat, dat, input$dataDownloadChoice)})
+  
+  output$dataToDownload <- renderTable(dfInput())
+  
+  output$downloadData <- downloadHandler(
+    filename = function(){
+      paste("Covid-19-data-", Sys.Date(), '.csv', sep='')
+    },
+    content = function(con) {
+      write.csv(dfInput(), con)
+    }
+  )
+  
 }
 #### END OF THE SERVER CODE
 
