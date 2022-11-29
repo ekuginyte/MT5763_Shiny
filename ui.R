@@ -2,25 +2,15 @@
 # Load libraries
 library(shiny)
 library(shinythemes)
+# To build a map
+library(ggiraph)
 
-####################################################################### EXAMPLE
-# UI code 
+
+#### UI CODE
 ui <- fluidPage(
   
-  # Pre-set the theme
-  theme = shinytheme("slate"),
-  
-  # Let the user select the theme
-  themeSelector(),
-  sidebarPanel(
-    textInput("txt", "Text input:", "text here"),
-    sliderInput("slider", "Slider input:", 1, 100, 30),
-    actionButton("action", "Button",  icon = icon("cloud")),
-    actionButton("action2", "Button2", class = "btn-primary")
-  )
-  
   # App name
-  titlePanel("Simple histogram"),
+  titlePanel("Covid-19 Map Data"),
   
   # Sidebar with a numeric input for mean and var
   # and a slider input for bin
@@ -28,30 +18,30 @@ ui <- fluidPage(
     
     # Side panel
     sidebarPanel(
-      # Mean
-      numericInput(inputId = "mean",
-                   label = "Mean of normal distributon.",
-                   value = 0),
-      # Var
-      numericInput(inputId = "var",
-                   label = "Variance of normal distributon.",
-                   value = 1,
-                   min = 0.01),
-      # Bin
-      sliderInput(inputId = "bin",
-                  label = "Number of bins.",
-                  value = 20,
-                  min = 1,
-                  max = 50)
+      
+      # First input: Type of data
+      selectInput(inputId = "choice",
+                  label = "Data to display:",
+                  choices = list(
+                    "Number of Cases" = "total_cases", 
+                    "Number of Cases per 1 mln of Population" = "cases_per1m",
+                    "Number of Deaths" = "total_deats", 
+                    "Number of Deaths per 1 mln of Population" = "deaths_per1m",
+                    "Number of Recoveries" = "total_recovered", 
+                    "Number of Active Cases" = "active_cases", 
+                    "Number of Active Case per 1 mln of Population" = "active_per1m", 
+                    "Number of Serious Cases" = "serious_cases",
+                    "Number of Tests" = "total_tests", 
+                    "Number of Tests per 1 mln of Population" = "tests_per1m", 
+                    "Population" = "population")),
     ),
     
     # Main panel
     mainPanel(
-      # Histogram
-      plotOutput(outputId = "histPlot"),
-      # Summary statistics
-      verbatimTextOutput(outputId = "summary")
+      
+      # Plot the map
+      girafeOutput("distPlot")
     )
   )
 )
-####################################################################### EXAMPLE
+#### END OF UI CODE
