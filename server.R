@@ -212,7 +212,7 @@ dat <- get_data(website = "https://www.worldometers.info/coronavirus/",
 #     data - data frame containing covid data,
 #     choice - choice of data to display, given by the user,
 #     world_map - data frame containing world map data,
-map <- function(data = dat, world_map = get_world_map(), choice) {
+map <- function(data = dat, world_map = get_world_map(), input_choice) {
   
   # Selected plot look, function
   created_theme <- function () { 
@@ -229,12 +229,13 @@ map <- function(data = dat, world_map = get_world_map(), choice) {
   }
   
   # User selects the column displayed
-  df_map <- data[data$choice == choice, ]
-  # In case the data column has missing values
-  df_map <- df_map[!is.na(df_map$choice), ]
+  # NA rows removed
+  df_map <- data %>%
+    filter(choice == input_choice) %>%
+    drop_na()
   
   # Duplicate data to the map data frame
-  world_map["choice"] <- rep(choice, nrow(world_map))
+  world_map["choice"] <- rep(input_choice, nrow(world_map))
   world_map["numeric"] <- df_map$numeric[match(world_map$region, 
                                                df_map$region)]
   
@@ -243,7 +244,7 @@ map <- function(data = dat, world_map = get_world_map(), choice) {
     geom_polygon_interactive(data = subset(world_map), color = 'darkgray', size = 0.2,
                              aes(x = long, y = lat, fill = numeric, group = group, 
                                  tooltip = sprintf("%s<br/>%s", region, numeric))) + 
-    scale_fill_gradientn(colours = brewer.pal("BuPu"), na.value = 'white') + 
+    scale_fill_gradientn(colours = brewer.pal(4, "BuPu"), na.value = 'white') + 
     created_theme()
   
   # Return the plot
@@ -256,10 +257,15 @@ map <- function(data = dat, world_map = get_world_map(), choice) {
 server <- function(input, output) {
   
   # Plot the world map 
-  output$distPlot <- renderGirafe( {
-    ggiraph(code = print(map(data, world_map, input$choice)))
-    
+  output$distPlot <- renderGirafe({
+    ggiraph(code = print(map(input_choice =  input$choice)))
   })
+  
+  # Save plot and dataset
+  observeEvent(input$getCurrentData, {
+    ggsave("map.jpg")
+    saveRDS(dat)
+  })  
 }
 #### END OF THE SERVER CODE
 
