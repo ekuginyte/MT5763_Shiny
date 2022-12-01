@@ -14,6 +14,11 @@ library(ggiraph)
 library(RColorBrewer)
 # Data frame re-format
 library(reshape2)
+# Dynamic shiny bits
+library(shinyjs)
+# ggplot
+library(ggplot2)
+library(ggmap)
 
 #### EXTRACT DATA
 # Function to create a covid data frame
@@ -243,7 +248,7 @@ map <- function(data = dat, world_map = get_world_map(), input_choice) {
     geom_polygon_interactive(data = subset(world_map), color = 'darkgray', size = 0.2,
                              aes(x = long, y = lat, fill = numeric, group = group, 
                                  tooltip = sprintf("%s<br/>%s", region, numeric))) + 
-    scale_fill_gradientn(colours = brewer.pal(4, "BuPu"), na.value = 'white') + 
+    scale_fill_gradientn(colours = brewer.pal(4, "BuPu"), na.value = 'white') +
     created_theme()
   
   # Return the plot
@@ -255,30 +260,45 @@ map <- function(data = dat, world_map = get_world_map(), input_choice) {
 #### SERVER CODE
 server <- function(input, output){
   
+  ### Globe plot page
+  
   # Plot the world map 
   output$distPlot <- renderGirafe({
-    ggiraph(code = print(map(input_choice =  input$choice)))
+    ggiraph(code = print(map(input_choice =  input$globeDataChoice)))
   })
   
   # Save plot and data set
   observeEvent(input$getCurrentData, {
-    ggsave("map.jpg")
-  })  
+    ggsave(paste("Covid-19_map_",input$globeDataChoice,"_",Sys.Date(),".jpg", sep = ""))
+  })
   
-    
+  ### Data plot page
+  
   dfInput <- reactive({
-    get.df(input$dataFormat, dat, input$dataDownloadChoice)})
+    get.df(input$dataFormat, dat, input$dataChoice, input$dataCountries)})
   
-  output$dataToDownload <- renderTable(dfInput())
+  output$dataToDownload <- renderDataTable(dfInput())
   
   output$downloadData <- downloadHandler(
     filename = function(){
-      paste("Covid-19-data-", Sys.Date(), '.csv', sep='')
+      paste("Covid-19_data_", Sys.Date(),'.csv', sep='')
     },
     content = function(con) {
       write.csv(dfInput(), con)
     }
   )
+  
+  ### Plot page
+  
+  # Plot specified map
+  output$plot <- renderGirafe({
+    ggiraph(code = print(get.plot(get.plot(input$plotTypeChoice, get.df("l", dat, input$plotDataChoice, input$plotCountries)))))
+  })
+  
+  # Save plot and data set
+  observeEvent(input$getCurrentPlot, {
+    ggsave(paste("Covid-19_map_",input$plotDataChoice,"_",input$plotTypeChoice,Sys.Date(),".jpg", sep = ""))
+  })
   
 }
 #### END OF THE SERVER CODE
