@@ -1,0 +1,8 @@
+## To do
+
+- README.md
+- Transfer all functions to global.R. Dependicies need checking
+- Additionaly plot options
+- Refresh button
+- Get coehrrent naming convention for ease of reading
+- 

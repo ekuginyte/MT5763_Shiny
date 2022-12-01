@@ -205,6 +205,8 @@ get_world_map <- function() {
   return(world_map)
 }
 
+lastRefresh <- Sys.time()
+
 dat <- get_data(website = "https://www.worldometers.info/coronavirus/", 
          table_name = "#main_table_countries_today")
 
@@ -267,10 +269,15 @@ server <- function(input, output){
     ggiraph(code = print(map(input_choice =  input$globeDataChoice)))
   })
   
-  # Save plot and data set
-  observeEvent(input$getCurrentData, {
-    ggsave(paste("Covid-19_map_",input$globeDataChoice,"_",Sys.Date(),".jpg", sep = ""))
-  })
+  # Save plot
+  output$downloadGlobePlot <- downloadHandler(
+    filename = function(){
+      paste("Covid-19_map_",input$globeDataChoice,"_",Sys.Date(),".jpg", sep = "")
+    },
+    content = function(con) {
+      ggsave(con)
+    }
+  )
   
   ### Data plot page
   
@@ -290,15 +297,33 @@ server <- function(input, output){
   
   ### Plot page
   
+  plotdfInput <- reactive({
+    get.df("l", dat, input$plotDataChoice, input$plotCountries)})
+  
   # Plot specified map
   output$plot <- renderGirafe({
-    ggiraph(code = print(get.plot(get.plot(input$plotTypeChoice, get.df("l", dat, input$plotDataChoice, input$plotCountries)))))
+    ggiraph(code = print(get.plot(plotName = input$plotTypeChoice, df = plotdfInput())))
   })
   
-  # Save plot and data set
-  observeEvent(input$getCurrentPlot, {
-    ggsave(paste("Covid-19_map_",input$plotDataChoice,"_",input$plotTypeChoice,Sys.Date(),".jpg", sep = ""))
-  })
+  # Save plot 
+  output$downloadPlot <- downloadHandler(
+    filename = function(){
+      paste("Covid-19_map_",input$plotDataChoice,"_",input$plotTypeChoice,Sys.Date(),".jpg", sep = "")
+    },
+    content = function(con) {
+      ggsave(con)
+    }
+  )
+  
+  # Save plot dataset
+  output$downloadPlotData <- downloadHandler(
+    filename = function(){
+      paste("Covid-19_map_",input$plotDataChoice,"_",input$plotTypeChoice,Sys.Date(),".csv", sep = "")
+    },
+    content = function(con) {
+      write.csv(dfInput(), con)
+    }
+  )
   
 }
 #### END OF THE SERVER CODE

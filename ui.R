@@ -4,20 +4,22 @@
 #library(shinythemes)
 #library(shinyjs)
 # To build a map
-#library(ggiraph)
 # To get map data
+#library(ggiraph)
 #library(maps)
 #library(ggmap)
 
 
 #### UI CODE
 ui <- fluidPage(
+# Enable additional features
+shinyjs::useShinyjs(), 
+  
   
 # Navbar structure for ui
   navbarPage("Covid-19 Tracker", theme = shinytheme("yeti"),
   
   ### Global plot page
-  
   tabPanel("Global Plot", icon = icon("globe"),
   
     # Sidebar with a numeric input for mean and var
@@ -25,7 +27,7 @@ ui <- fluidPage(
     sidebarLayout(
       # Side panel
       sidebarPanel(
-        # First input: Type of data
+        # INPUT: Type of data
         selectInput(inputId = "globeDataChoice",
                     label = "Data to display:",
                     choices = list(
@@ -41,25 +43,29 @@ ui <- fluidPage(
                       "Number of Tests per 1 mln of Population" = "tests_per1m", 
                       "Population" = "population")),
         
-        # Button to download current map instant and data
+        # OUTPUT: Button to download current map instant and data
         actionButton(inputId = "getCurrentData",
-                     label = "Download Map")
+                     label = "Download Map"),
+        
+        # OUTPUT: Download button for the world plot shown
+        downloadLink('downloadGlobePlot', 'Download Plot Data')
         ),
+      
       # Main panel
       mainPanel(
         
-        # Plot the map
+        # OUTPUT: Plot the globe map
         girafeOutput("distPlot")
       )
     )
   ),
   
   ### Data page
-  
   tabPanel("Data", icon = icon("database"),
            
            sidebarLayout(
              sidebarPanel(
+               # INPUT: Select choice of data
                checkboxGroupInput(inputId = "dataChoice",
                              label = "Choice of data to display",
                              choiceNames = list(
@@ -91,24 +97,26 @@ ui <- fluidPage(
                              selected = list("Number of Cases")
                              ),
                
-               # Used to disable country selection if all selected
-               shinyjs::useShinyjs(), 
-               
+               # INPUT: Select countries
                selectInput(inputId = "dataCountries",
                            label = "Countries",
                            choices = unique(map_data("world")$region),
                            multiple = TRUE,
                            selected = "UK"),
                
+               # INPUT: Toggle between long and wide format
                selectInput(inputId = "dataFormat",
                             label = "Format of data",
                             choices = list("Long" = "l",
                                             "Wide" = "w")),
                
+               # OUTPUT: Download the current data frame from query
                downloadLink('downloadData', 'Download Data')
              ),
            
            mainPanel(
+             
+             # OUTPUT: Display data frame from query
              dataTableOutput("dataToDownload")
            )
   )),
@@ -120,7 +128,8 @@ ui <- fluidPage(
            sidebarLayout(
              # Side panel
              sidebarPanel(
-               # First input: Type of data
+               
+               # INPUT: data to display
                selectInput(inputId = "plotDataChoice",
                            label = "Data to display:",
                            choices = list(
@@ -136,31 +145,46 @@ ui <- fluidPage(
                              "Number of Tests per 1 mln of Population" = "tests_per1m", 
                              "Population" = "population")),
                
+               # INPUT: choice of plot
                selectInput(inputId = "plotTypeChoice",
                            label = "Graph Type:",
                            choices = list(
                              "Vertical Bar Chart" = "vbar",
-                             "Histogram" = "hist")),
+                             "Pie Chart" = "pie"),
+                           selected = "vbar"),
                
-               selectInput(inputId = "plotCountries",
-                           label = "Countries",
+               # INPUT: coutries to plot data from
+               selectizeInput(inputId = "plotCountries",
+                           label = "Countries (max 10)",
                            choices = unique(map_data("world")$region),
                            multiple = TRUE,
-                           selected = "UK"),
+                           selected = "UK",
+                           options = list(maxItems = 10)
+                           ),
                
-               # Button to download current map instant and data
-               actionButton(inputId = "getCurrentPlot",
-                            label = "Download Map"
-               )
+               # OUTPUT: Link to download plot shown
+               downloadLink('downloadPlotData', 'Download Plot Data'),
                
+               # OUTPUT: Link to download plot dataset
+               downloadLink('downloadPlot', 'Download Plot Data')
              ),
              # Main panel
              mainPanel(
                
-               # Plot the map
+               # OUTPUT: Plot the map from above query
                girafeOutput("plot")
              )
            )
           
-)))
+  ),
+  
+  navbarMenu("More",
+             tabPanel("About", 
+                      fluidRow(column(6,
+                                      includeMarkdown("Readme.md")))),
+             # ADD REFRESH BUTTON IN HERE
+             tabPanel("Current Data Set"
+                      ))
+
+))
 #### END OF UI CODE
