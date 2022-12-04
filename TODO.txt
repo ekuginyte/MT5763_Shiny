@@ -5,4 +5,8 @@
 - Additionaly plot options
 - Refresh button
 - Get coehrrent naming convention for ease of reading
-- 
+- Interactive map ui -EK
+- New data -J
+- Total cases
+- Time series data mapped
+- Continent plots (if we have continent data)
