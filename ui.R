@@ -1,13 +1,13 @@
 # ui file for the Shiny app
 # Load libraries
-#library(shiny)
-#library(shinythemes)
-#library(shinyjs)
+library(shiny)
+library(shinythemes)
+library(shinyjs)
 # To build a map
 # To get map data
-#library(ggiraph)
-#library(maps)
-#library(ggmap)
+library(ggiraph)
+library(maps)
+library(ggmap)
 
 
 #### UI CODE

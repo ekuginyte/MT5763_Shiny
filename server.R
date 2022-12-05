@@ -19,6 +19,9 @@ library(shinyjs)
 # ggplot
 library(ggplot2)
 library(ggmap)
+library(ggiraph)
+library(shinythemes)
+library(maps)
 
 #### EXTRACT DATA
 # Function to create a covid data frame

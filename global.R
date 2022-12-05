@@ -1,3 +1,8 @@
+### Required libraries
+library(ggplot2)
+library(data.table)
+library(dplyr)
+
 ### Dictionaries
 
 plot_labels <-
@@ -13,6 +18,13 @@ plot_labels <-
     "total_tests" = "Total Tests", 
     "tests_per1m" = "Tests per mln", 
     "population" = "Total Poplation"
+  )
+
+JHU_data_dict <-
+  c(
+    "confirmed" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv",
+    "deaths" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv",
+    "recovered" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
   )
 
 ### Functions
@@ -61,3 +73,24 @@ get.plot <- function(plotName = "vbar", df) {
   }
   return(p)
 }
+
+# Scrape data from GitHub and wrangle
+get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20", format = "%m/%d/%Y"), maxDate = as.Date(strftime(Sys.time(), "%m/%d/%y")), countries = NA){
+  
+  # Get list of dates desired
+  dates <- gsub("0", "", format(seq(minDate, maxDate, by="days"), format = "%m/%d/%Y"))
+  
+  # Returns a parsed df of required timeframe and by country, dropping redundant information
+  df <- fread(JHU_data_dict[type], drop = c("Province/State", "Lat", "Long")) %>%
+    rename("Region" = "Country/Region") %>%
+    group_by(Region) %>%
+    select(dates) %>%
+    summarise_all(funs(sum(na.omit(.))))
+  
+  unique_regions <- unique(df$Region)
+  
+  return(df)
+}
+
+# Regions that need matching can be found by using 
+df$Region[is.na(match(unique(df$Region), unique(world_map$region)))]
