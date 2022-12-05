@@ -24,8 +24,6 @@ JHU_data_dict <-
     "recovered" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
   )
 
-
-
 ### Functions
 
 
@@ -306,20 +304,33 @@ get.plot <- function(plotName = "vbar", df) {
 
 
 # Scrape data from GitHub and wrangle
-get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20", format = "%m/%d/%Y"), maxDate = as.Date(strftime(Sys.time(), "%m/%d/%y")), countries = NA){
+get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20", format = "%m/%d/%y"), maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2, countries = NA){
+  
+  # Function requires lots of manipultation due to the formatting of the dates in the data
+  # Month and days have no leading 0s and additionally is in American format
   
   # Get list of dates desired
-  dates <- gsub("0", "", format(seq(minDate, maxDate, by="days"), format = "%m/%d/%Y"))
-  
+  dates <- format(seq(minDate, maxDate, by="day"), format = "%m/%d/%y")
+
   # Returns a parsed df of required timeframe and by country, dropping redundant information
+  # Fetch the data
   df <- fread(JHU_data_dict[type], drop = c("Province/State", "Lat", "Long")) %>%
+    # Rename the column for ease later
     rename("Region" = "Country/Region") %>%
-    group_by(Region) %>%
+    # Group by region(normally country)
+    group_by(Region)
+  df <- df %>% 
+    # Rename all dates to be in a nicer format
+    rename_at(vars(names(df[-1])), ~as.character(format(as.Date(names(df[-1]), format = "%m/%d/%y"), format = "%m/%d/%y"))) %>%
+    # Select all the dates found above
     select(dates) %>%
+    # Combine any rows which have the same region
     summarise_all(funs(sum(na.omit(.))))
   
+  # Find unique regions, used to help find the association
   unique_regions <- unique(df$Region)
   
+  # Return parsed data
   return(df)
 }
 
