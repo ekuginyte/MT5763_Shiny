@@ -28,12 +28,17 @@ server <- function(input, output){
   
  observe({
    
-    input$refresh# Refresh when clicked
-    invalidateLater(3600000)# Refresh every hour
-    
+   # Refresh when clicked
+    input$refresh
+    # Refresh every hour
+    invalidateLater(3600000)
+    # Extract time series data
     TSData <- get.time.series.data()
+    # Save today's date
     currentDate <- as.Date(strftime(Sys.time(), "%Y/%m/%d"))
+    # Extract all possible dates
     dateOptions <- names(TSData[-1])
+    dateOptions <- as.Date(dateOptions, "%m/%d/%y")
     
     # Map of time series data
     plot_map_1 <- confirmed_total_map(df = TSData, date = input$plot_date)
@@ -45,7 +50,9 @@ server <- function(input, output){
   ### Globe plot page
   # Plot the JHU data map
   output$confirmed_map <- 
-    renderGirafe({ggiraph(code = print(confirmed_total_map(df = TSData, user_input = input$map_data_choice)))#, date = plot_date))
+    renderGirafe({ggiraph(code = print(confirmed_total_map(
+      df = TSData, user_input = input$map_data_choice)))#, date = plot_date))
+    ggiraph(code = print(confirmed_total_map(df = TSData, user_input = input$map_data_choice)))
     # LEAFLET MAP NEEDS WORK
     #renderLeaflet({
     #confirmed_total_map(user_input = input$map_data_choice, date = plot_date)
