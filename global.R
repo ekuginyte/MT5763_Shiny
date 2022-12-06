@@ -19,7 +19,7 @@ plot_labels <-
 
 JHU_data_dict <-
   c(
-    "confirmed" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv",
+    "confirmed" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv",
     "deaths" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv",
     "recovered" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
   )
@@ -302,9 +302,25 @@ get.plot <- function(plotName = "vbar", df) {
   return(p)
 }
 
-
-# Scrape data from GitHub and wrangle
 get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20", format = "%m/%d/%y"), maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2, countries = NA){
+  # Function - Scrape data from GitHub and wrangle
+  # Input - type : ["confirmed", "deaths", "recovered"],
+  #         minDate : eg. as.Date("m/d/y", format="%m/%d/%Y", 
+  #         maxDate : eg. as.Date("m/d/y", format="%m/%d/%Y"
+  # * dates must be Date objects with format specified
+  # Output - data.frame time series
+  
+  # EXAMPLE LINE:
+  # get.time.series.data("deaths", as.Date("21/02/2022", format = "%d/%m/%Y"), as.Date("25/02/2022", format = "%d/%m/%Y"))
+  
+  # Dictionary to act as register for URLs to access data
+  JHU_data_dict <-
+    c(
+      "confirmed" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv",
+      "deaths" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv",
+      "recovered" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
+    )
+  
   
   # Function requires lots of manipultation due to the formatting of the dates in the data
   # Month and days have no leading 0s and additionally is in American format
@@ -318,7 +334,7 @@ get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20"
     # Rename the column for ease later
     rename("Region" = "Country/Region") %>%
     # Group by region(normally country)
-    group_by(Region)
+    group_by(Region) 
   df <- df %>% 
     # Rename all dates to be in a nicer format
     rename_at(vars(names(df[-1])), ~as.character(format(as.Date(names(df[-1]), format = "%m/%d/%y"), format = "%m/%d/%y"))) %>%
@@ -327,13 +343,15 @@ get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20"
     # Combine any rows which have the same region
     summarise_all(funs(sum(na.omit(.))))
   
+  # ONCE COUNTRIES HAVE BEEN ASSIGNED can use lines of code similar to that seen in 
+  # get.df() with countries to find 
+  
   # Find unique regions, used to help find the association
   unique_regions <- unique(df$Region)
   
   # Return parsed data
   return(df)
 }
-
 
 # GitHub data map plotting functions
 
