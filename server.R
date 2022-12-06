@@ -12,8 +12,12 @@ if(!require(RColorBrewer)) install.packages("RColorBrewer")
 if(!require(reshape2)) install.packages("reshape2")
 if(!require(shinyjs)) install.packages("shinyjs")
 if(!require(shinythemes)) install.packages("shinythemes")
+if(!require(shiny)) install.packages("shiny", repos = "http://cran.us.r-project.org")
+if(!require(shinyWidgets)) install.packages("shinyWidgets", repos = "http://cran.us.r-project.org")
+if(!require(shinydashboard)) install.packages("shinydashboard", repos = "http://cran.us.r-project.org")
 if(!require(data.table)) install.pakcages("data.table")
 if(!require(rgdal)) install.pakcages("rgdal")
+if(!require(leaflet)) install.pakcages("leaflet")
 
 ### Load libraries
 library(shiny)
@@ -38,6 +42,9 @@ library(shinythemes)
 library(maps)
 library(data.table)
 library(mgsub)
+library(leaflet)
+library(shinyWidgets)
+
 #### EXTRACT DATA
 # Function to create a covid data frame
 #   INPUT:

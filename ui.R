@@ -10,7 +10,7 @@ shinyjs::useShinyjs(),
              
   ### World map data 1
   tabPanel("Covid-19 Map", icon = icon("map"),
-           tags$head(includeCSS("styles.css")),
+           #tags$head(includeCSS("styles.css")),
            leafletOutput("confirmed_map", width = "100%", height = "100%"),
            
            absolutePanel(id = "controls", class = "panel panel-default",
@@ -35,7 +35,7 @@ shinyjs::useShinyjs(),
                selectInput(inputId = "map_data_choice",
                            label = "Data to display:",
                            choices = list(
-                             "Total Number of Covid-19 Cases" = user_input))
+                             "Total Number of Covid-19 Cases" = user_input)),
                
                sliderTextInput("plot_date",
                                label = h5("Select mapping date"),
