@@ -22,7 +22,8 @@ library(ggmap)
 library(ggiraph)
 library(shinythemes)
 library(maps)
-
+library(data.table)
+library(mgsub)
 #### EXTRACT DATA
 # Function to create a covid data frame
 #   INPUT:
