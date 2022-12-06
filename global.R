@@ -19,7 +19,6 @@ plot_labels <-
 
 ### Functions
 
-
 # Function to create a covid data frame
 #   INPUT:
 #     website - site where data will be scraped from,
@@ -35,7 +34,7 @@ get.data <- function(website, table_name) {
     stop("Invalid table link!")
   }
   # Check if scraping is allowed
-  if (paths_allowed(website) == FALSE) {
+  if (robotstxt::paths_allowed(website) == FALSE) {
     stop("Not allowed to scrape data!")
   }
   
@@ -214,6 +213,9 @@ get.world.map <- function() {
 #     data - data frame containing covid data,
 #     choice - choice of data to display, given by the user,
 #     world_map - data frame containing world map data,
+
+#!! data = dat assumes dat is initialised always
+
 map <- function(data = dat, world_map = get.world.map(), input_choice) {
   
   # Selected plot look, function
@@ -372,9 +374,11 @@ get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20"
 }
 
 # Function to create a world data frame for plot 2
+#   INPUT:
+#     df - data frame containing time series data
 #   OUTPUT:
 #     world_map_2 - data frame containing covid data.
-get.world.map.2 <- function() {
+get.world.map.2 <- function(df = NA) {
   
   # Create empty data frame to later return
   world_map_2 <- data.frame(NA)
@@ -409,33 +413,68 @@ get.world.map.2 <- function() {
 #  OUTPUT:
 #    plot_map_1 - map plot of selected data.
 confirmed_total_map <-  function(user_input = "confirmed", 
-                                 maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2) {
-  df <- get.time.series.data(type = user_input, maxDate = maxDate)
-  df$Cases <- rowSums(df[2:ncol(df)])
-  world_map_2 <- get.world.map.2()
+                                 date =  as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2,
+                                 df) {
   
-  # Add the sum of cases to the world map data frame
-  world_map_2["cases"] <- df$Cases[match(world_map_2$Region, df$Region)]
+  #df <- get.time.series.data(type = user_input, maxDate = maxDate)
+  #df$Cases <- rowSums(df[2:ncol(df)])# DOES NOT WORK WITH DATASET, data is active cases for confirmed
+  df <- df %>%
+    select(c("Region", format(date, format = "%m/%d/%y")))
   
+  world_map_2 <- get.world.map.2(df)
+  
+  # Add the cases to the world map data frame
+  world_map_2["cases"] <- df[match(world_map_2$Region, df$Region),format(date, format = "%m/%d/%y")]
+  
+  ############################## LEFLET ########################################
+
   # Plotting parameters for the world map
-  bins <- c(0, 10, 50, 100, 500, 1000, Inf)
-  map_palette <- colorBin("Blues", domain = world_map_2$cases, bins = bins)
+  #bins <- c(0, 10, 50, 100, 500, 1000, Inf)
+  #map_palette <- colorBin("Blues", domain = world_map_2$cases, bins = bins)
   
   # Create base map 
-  plot_map_1 <- leaflet(world_map_2) %>% 
-    addTiles() %>% 
-    addLayersControl(
-      position = "topright",
-      overlayGroups = c("Covid-19 Confirmed", "Covid-19 Deaths", "Covid-19 Recovered"),
-      options = layersControlOptions(collapsed = FALSE)) %>% 
-    hideGroup(c("Covid-19 Deaths", "Covid-19 Recovered")) %>%
-    addProviderTiles(providers$CartoDB.Positron) %>%
-    fitBounds(~-100, -60, ~60, 70) %>%
-    addLegend("bottomright", pal = map_palette, values = ~world_map_2$cases,
-              title = "<small>Cases</small>") 
+  #plot_map_1 <- leaflet(world_map_2) %>% 
+    #addTiles() %>% 
+    #addLayersControl(
+      #position = "topright",
+      #overlayGroups = c("Covid-19 Confirmed", "Covid-19 Deaths", "Covid-19 Recovered"),
+      #options = layersControlOptions(collapsed = FALSE)) %>% 
+    #hideGroup(c("Covid-19 Deaths", "Covid-19 Recovered")) %>%
+    #addProviderTiles(providers$CartoDB.Positron) %>%
+    #fitBounds(~-100, -60, ~60, 70) %>%
+    #addLegend("bottomright", pal = map_palette, values = ~world_map_2$cases,
+    #          title = "<small>Cases</small>") 
+  # Return the plot
+  #return(plot_map_1)
+#}
+  
+  ############################# GGPLOT #########################################
+  
+  # Selected plot look, function
+  created_theme <- function () { 
+    theme_minimal() + 
+      theme(panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            panel.background = element_blank(), 
+            panel.border = element_blank(), 
+            strip.background = element_rect(fill = "red", colour = "red"),
+            legend.position = "top")
+  }
+  
+  # Use ggplot to plot the map
+  plot_map <- ggplot() + 
+    geom_polygon_interactive(data = subset(world_map_2), color = 'darkgray', size = 0.2,
+                             aes(x = long, y = lat, fill = cases, group = group, 
+                                 tooltip = sprintf("%s<br/>%s", Region, cases))) + 
+    scale_fill_gradientn(colours = brewer.pal(4, "BuPu"), na.value = 'white') +
+    created_theme()
   
   # Return the plot
-  return(plot_map_1)
+  return(plot_map)
 }
+
 # Regions that need matching can be found by using 
 #df$Region[is.na(match(unique(df$Region), unique(world_map$region)))]

@@ -1,4 +1,6 @@
 # ui file for the Shiny app
+# Current date
+lastSessionStart <- as.Date(strftime(Sys.time(), "%Y/%m/%d"))
 
 ### UI
 ui <- fluidPage(
@@ -10,12 +12,12 @@ shinyjs::useShinyjs(),
              
   ### World map data 1
   tabPanel("Covid-19 Map", icon = icon("map"),
-           leafletOutput("confirmed_map", width="100%", height="100%"),
+           #leaflet::leafletOutput("confirmed_map", width="100%", height=),
            sidebarLayout(
-           sidebarPanel(sliderTextInput("plot_date",
+           sidebarPanel(shinyWidgets::sliderTextInput("plot_date",
                         label = "Plot date",
-                        choices = dateOptions,
-                        selected = lastSessionStart,
+                        choices = "10/17/22",
+                        selected = "10/17/22",
                         grid = FALSE,
                         animate = animationOptions(interval = 3000, loop = FALSE)),
            
@@ -29,7 +31,7 @@ shinyjs::useShinyjs(),
       
       mainPanel(
         # Can change output if you want
-        leafletOutput("confirmed_map")
+        girafeOutput("confirmed_map")
       )
   )),
            
@@ -69,7 +71,7 @@ shinyjs::useShinyjs(),
       mainPanel(
         
         # OUTPUT: Plot the globe map
-        girafeOutput("distPlot", height = "120%")
+        ggiraph::girafeOutput("distPlot", height = "120%")
       )
     )
   ),
@@ -127,6 +129,8 @@ shinyjs::useShinyjs(),
                # OUTPUT: Download the current data frame from query
                downloadLink('downloadData', 'Download Data')
              ),
+             
+             actionButton(inputId = "refresh", label = "Refresh Data"),
            
            mainPanel(
              
@@ -186,14 +190,11 @@ shinyjs::useShinyjs(),
              mainPanel(
                
                # OUTPUT: Plot the map from above query
-               girafeOutput("plot")
+               ggiraph::girafeOutput("plot")
              )
            )
           
   ),
-  
-  actionButton("refresh", "Update"),
-  
   
   navbarMenu("More",
              tabPanel("About", 
@@ -203,4 +204,5 @@ shinyjs::useShinyjs(),
              tabPanel("Current Data Set"
                       ))
 
-))
+)
+)
