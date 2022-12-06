@@ -17,6 +17,8 @@ if(!require(shinydashboard)) install.packages("shinydashboard", repos = "http://
 if(!require(data.table)) install.pakcages("data.table")
 if(!require(rgdal)) install.pakcages("rgdal")
 if(!require(leaflet)) install.pakcages("leaflet")
+if(!require(shinyWidgets)) install.pakcages("shinyWidgets")
+if(!require(data.table)) install.pakcages("data.table")
 
 ### Load libraries
 library(shiny)
@@ -39,10 +41,16 @@ library(shinyWidgets)
 library(data.table)
 
 # Initialize variables
+
+# Current date
 lastSessionStart <- as.Date(strftime(Sys.time(), "%Y/%m/%d"))
 
+# Data frame containing covid data 2
 dat <- get.data(website = "https://www.worldometers.info/coronavirus/", 
          table_name = "#main_table_countries_today")
+
+# Map of time series data
+plot_map_1 <- confirmed_total_map()
 
 ### Server
 server <- function(input, output){
@@ -53,6 +61,9 @@ server <- function(input, output){
     TSData <- get.time.series.data()
     currentDate <- as.Date(strftime(Sys.time(), "%Y/%m/%d"))
     dateOptions <- names(TSData[-1])
+    
+    # Map of time series data
+    plot_map_1 <- confirmed_total_map()
     
     updateSliderTextInput(session, "plot_date", choices = dateOptions)
     

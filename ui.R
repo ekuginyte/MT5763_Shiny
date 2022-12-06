@@ -6,14 +6,16 @@ ui <- fluidPage(
 shinyjs::useShinyjs(), 
   
   # Navbar structure for ui
-  navbarPage("Covid-19 Tracker", theme = shinythemes::shinytheme("flatly"),
+  navbarPage("Covid-19 Tracker", theme = shinytheme("flatly"),
              
   ### World map data 1
   tabPanel("Covid-19 Map", icon = icon("map"),
+           leafletOutput("confirmed_map", width="100%", height="100%"),
            sidebarLayout(
            sidebarPanel(sliderTextInput("plot_date",
                         label = "Plot date",
-                        choices = c(""),
+                        choices = dateOptions,
+                        selected = lastSessionStart,
                         grid = FALSE,
                         animate = animationOptions(interval = 3000, loop = FALSE)),
            

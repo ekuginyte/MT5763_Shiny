@@ -208,7 +208,7 @@ get.world.map <- function() {
   return(world_map)
 }
 
-
+######### REDUNDANT
 # Function to create the base map
 #   INPUTS:
 #     data - data frame containing covid data,
@@ -252,6 +252,7 @@ map <- function(data = dat, world_map = get.world.map(), input_choice) {
   # Return the plot
   return(plot_map)
 }
+######### REDUNDANT
 
 # Dynamic dataset formatter for data page
 get.df <- function(format, df_0, choices, countries){
@@ -298,12 +299,6 @@ get.plot <- function(plotName = "vbar", df) {
   return(p)
 }
 
-# Create histogram to compare the continent 
-get.hist <- function(plotName = "hist", df) {
-  if (plotName == "hist") {
-    p <- ggplot(data = df, aes(x = ))
-  }
-}
 
 get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20", format = "%m/%d/%y"), maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2, countries = NA){
   # Function - Scrape data from GitHub and wrangle
@@ -409,12 +404,15 @@ get.world.map.2 <- function() {
 
 # Total confirmed cases
 #  INPUT:
-#    user_input - selection of plot.
+#    user_input - selection of type of plot;
+#    maxDate - selection of date.
 #  OUTPUT:
 #    plot_map_1 - map plot of selected data.
-confirmed_total_map <-  function(user_input, date) {
-  df <- get.time.series.data(type = user_input, minDate = date)
+confirmed_total_map <-  function(user_input = "confirmed", 
+                                 maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2) {
+  df <- get.time.series.data(type = user_input, maxDate = maxDate)
   df$Cases <- rowSums(df[2:ncol(df)])
+  world_map_2 <- get.world.map.2()
   
   # Add the sum of cases to the world map data frame
   world_map_2["cases"] <- df$Cases[match(world_map_2$Region, df$Region)]
@@ -439,6 +437,5 @@ confirmed_total_map <-  function(user_input, date) {
   # Return the plot
   return(plot_map_1)
 }
-
 # Regions that need matching can be found by using 
 #df$Region[is.na(match(unique(df$Region), unique(world_map$region)))]
