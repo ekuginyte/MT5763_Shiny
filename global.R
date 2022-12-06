@@ -24,6 +24,8 @@ JHU_data_dict <-
     "recovered" = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
   )
 
+
+
 ### Functions
 
 
@@ -33,7 +35,7 @@ JHU_data_dict <-
 #     table_name - name of table from the site.
 #   OUTPUT:
 #     dat - data frame containing covid data.
-get_data <- function(website, table_name) {
+get.data <- function(website, table_name) {
   # Check if the inputs are correct
   if (is.na(website) || is.numeric(website)) {
     stop("Invalid website url!")
@@ -168,6 +170,10 @@ get_data <- function(website, table_name) {
   dat <- drop_na(reshape2::melt(dat, id = "region", value.name = "numeric", 
                                 variable.name = "choice"))
   
+  # Add the continent component
+  dat["continent"] <- countries_covid$Continent[match(dat$region, 
+                                               countries_covid$Country.Other)]
+  
   # Create final data frame containing only necessary data
   return(dat)
 }
@@ -176,7 +182,7 @@ get_data <- function(website, table_name) {
 # Function to create a world data frame
 #   OUTPUT:
 #     world_map - data frame containing covid data.
-get_world_map <- function() {
+get.world.map <- function() {
   
   # Create empty data frame to later return
   world_map <- data.frame(NA)
@@ -217,7 +223,7 @@ get_world_map <- function() {
 #     data - data frame containing covid data,
 #     choice - choice of data to display, given by the user,
 #     world_map - data frame containing world map data,
-map <- function(data = dat, world_map = get_world_map(), input_choice) {
+map <- function(data = dat, world_map = get.world.map(), input_choice) {
   
   # Selected plot look, function
   created_theme <- function () { 
@@ -255,7 +261,6 @@ map <- function(data = dat, world_map = get_world_map(), input_choice) {
   # Return the plot
   return(plot_map)
 }
-
 
 # Dynamic dataset formatter for data page
 get.df <- function(format, df_0, choices, countries){
@@ -303,33 +308,95 @@ get.plot <- function(plotName = "vbar", df) {
 }
 
 
-# Scrape data from GitHub and wrangle
-get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20", format = "%m/%d/%y"), maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2, countries = NA){
+# Create histogram to compare the continent 
+get.hist <- function(plotName = "hist", df) {
+  if (plotName == "hist") {
+    p <- ggplot(data = df, aes(x = ))
+  }
+}
+
+# Function to create a world data frame for plot 2
+#   OUTPUT:
+#     world_map_2 - data frame containing covid data.
+get.world.map.2 <- function() {
   
-  # Function requires lots of manipultation due to the formatting of the dates in the data
+  # Create empty data frame to later return
+  world_map_2 <- data.frame(NA)
+  
+  # Load geographical coordinates
+  world_map_2 <- map_data("world")
+  world_map_2 <- fortify(world_map_2)
+  
+  # Check which regions don't have any covid data
+  dif <-  setdiff(unique(world_map_2$region), df$Region)
+  # Delete
+  world_map_2 <- world_map_2[!world_map_2$region %in% dif, ]
+  
+  # Delete regions with no covid data
+  world_map_2 <- subset(world_map_2, 
+                      region != "Burma" & region != "Cabo Verde" &
+                      region != "Nevis" & region != "Tobago")
+  
+  # Rename column name to match with covid data frame
+  names(world_map_2)[names(world_map_2) == "region"] <- "Region"
+  
+  # Return the data frame
+  return(world_map_2)
+}
+
+
+# Scrape data from GitHub and wrangle
+get.time.series.data <- function(type = user_input, minDate = as.Date("1/22/20", format = "%m/%d/%y"), 
+                                 maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2, countries = NA){
+  
+  # Function requires lots of manipulation due to the formatting of the dates in the data
   # Month and days have no leading 0s and additionally is in American format
   
   # Get list of dates desired
-  dates <- format(seq(minDate, maxDate, by="day"), format = "%m/%d/%y")
+  dates <- format(seq(minDate, maxDate, by = "day"), format = "%m/%d/%y")
 
   # Returns a parsed df of required timeframe and by country, dropping redundant information
   # Fetch the data
   df <- fread(JHU_data_dict[type], drop = c("Province/State", "Lat", "Long")) %>%
     # Rename the column for ease later
     rename("Region" = "Country/Region") %>%
-    # Group by region(normally country)
+    # Group by region (normally country)
     group_by(Region)
   df <- df %>% 
     # Rename all dates to be in a nicer format
     rename_at(vars(names(df[-1])), ~as.character(format(as.Date(names(df[-1]), format = "%m/%d/%y"), format = "%m/%d/%y"))) %>%
     # Select all the dates found above
-    select(dates) %>%
+    select(all_of(dates)) %>%
     # Combine any rows which have the same region
     summarise_all(funs(sum(na.omit(.))))
   
   # Find unique regions, used to help find the association
   unique_regions <- unique(df$Region)
   
+  # Delete rows with no mapping data
+  df <- subset(df, 
+               Region != "Congo (Brazzaville)" & Region != "Congo (Kinshasa)" & 
+               Region != "Cote d'Ivoire" & Region != "Diamond Princess" &
+               Region != "Cabo Verde" & Region != "Burma" &
+               Region != "Eswatini" & Region != "Holy See" & 
+               Region != "MS Zaandam" & Region != "Summer Olympics 2020" &
+               Region != "Tuvalu" & Region != "West Bank and Gaza" & 
+               Region != "Winter Olympics 2022")
+  
+  # Find covid data country name equivalents in world data
+  wrong_titles <- c("Antigua and Barbuda", "Czechia", "Korea, North", "Korea, South", 
+                    "Saint Kitts and Nevis", "Saint Vincent and the Grenadines", 
+                    "Taiwan*", "Trinidad and Tobago", "United Kingdom", "US")
+  
+  new_titles <- c("Antigua", "Czech Republic", "North Korea", 
+                  "South Korea", "Saint Kitts", "Grenadines", "Taiwan", 
+                  "Trinidad", "UK", "USA")
+  
+  # Rename countries in the covid data to match the world data
+  for (i in 1:length(wrong_titles)) {
+    df$Region[df$Region == wrong_titles[i]] <- new_titles[i]
+  }
+
   # Return parsed data
   return(df)
 }
@@ -341,19 +408,33 @@ get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20"
 #  INPUT:
 #    user_input - selection of plot.
 #  OUTPUT:
-#    df_plot - map plot of selected data.
-confirmed_total_map <-  function(user_input) {
-  df <- get.time.series.data(type = user_input)
-  df_plot <- ggplot(df, aes(x = date, y = cases, color = region)) + 
-    geom_line() + 
-    geom_point(size = 1, alpha = 0.8) +
-    ylab("Total Cases") + 
-    theme_minimal() + 
-    scale_colour_manual(values = c("#045a8d")) +
-    scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
-    theme(legend.title = element_blank(), legend.position = "", 
-          plot.title = element_text(size = 10), plot.margin = margin(5, 12, 5, 5))
-  df_plot
+#    plot_map_1 - map plot of selected data.
+confirmed_total_map <-  function(user_input, date) {
+  df <- get.time.series.data(type = user_input, maxDate)
+  df$Cases <- rowSums(df[2:ncol(df)])
+  
+  # Add the sum of cases to the world map data frame
+  world_map_2["cases"] <- df$Cases[match(world_map_2$Region, df$Region)]
+  
+  # Plotting parameters for the world map
+  bins <- c(0, 10, 50, 100, 500, 1000, Inf)
+  map_palette <- colorBin("Blues", domain = world_map_2$cases, bins = bins)
+  
+  # Create base map 
+  plot_map_1 <- leaflet(world_map_2) %>% 
+    addTiles() %>% 
+    addLayersControl(
+      position = "topright",
+      overlayGroups = c("Covid-19 Confirmed", "Covid-19 Deaths", "Covid-19 Recovered"),
+      options = layersControlOptions(collapsed = FALSE)) %>% 
+    hideGroup(c("Covid-19 Deaths", "Covid-19 Recovered")) %>%
+    addProviderTiles(providers$CartoDB.Positron) %>%
+    fitBounds(~-100, -60, ~60, 70) %>%
+    addLegend("bottomright", pal = map_palette, values = ~world_map_2$cases,
+              title = "<small>Cases</small>") 
+  
+  # Return the plot
+  return(plot_map_1)
 }
 
 # Regions that need matching can be found by using 
