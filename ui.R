@@ -1,25 +1,53 @@
 # ui file for the Shiny app
-# Load libraries
-library(shiny)
-library(shinythemes)
-library(shinyjs)
-# To build a map
-# To get map data
-library(ggiraph)
-library(maps)
-library(ggmap)
 
-
-#### UI CODE
+### UI
 ui <- fluidPage(
 # Enable additional features
 shinyjs::useShinyjs(), 
   
-  
-# Navbar structure for ui
-  navbarPage("Covid-19 Tracker", theme = shinytheme("yeti"),
-  
-  ### Global plot page
+  # Navbar structure for ui
+  navbarPage("Covid-19 Tracker", theme = shinythemes::shinytheme("flatly"),
+             
+  ### World map data 1
+  tabPanel("Covid-19 Map", icon = icon("map"),
+           tags$head(includeCSS("styles.css")),
+           leafletOutput("confirmed_map", width = "100%", height = "100%"),
+           
+           absolutePanel(id = "controls", class = "panel panel-default",
+                         top = 75, left = 55, width = 250, fixed = TRUE,
+                         draggable = TRUE, height = "auto",
+                         
+                         label = h5("Select date for mapping"),
+                                    sliderTextInput("plot_date",
+                                      choices = format(unique(cv_cases$date), "%d %m %y"),
+                                      selected = format(current_date, "%d %m %y"),
+                                      grid = FALSE,
+                                      animate = animationOptions(interval = 3000, loop = FALSE))
+           ),
+           
+    
+           # Sidebar with a numeric input for mean and var
+           # and a slider input for bin
+           sidebarLayout(
+             # Side panel
+             sidebarPanel(
+               # INPUT: Type of data
+               selectInput(inputId = "map_data_choice",
+                           label = "Data to display:",
+                           choices = list(
+                             "Total Number of Covid-19 Cases" = user_input))
+               
+               sliderTextInput("plot_date",
+                               label = h5("Select mapping date"),
+                               choices = format(unique(cv_cases$date), "%d %b %y"),
+                               selected = format(current_date, "%d %b %y"),
+                               grid = FALSE,
+                               animate = animationOptions(interval = 3000, loop = FALSE))
+      )       
+    )
+  ),
+           
+  ### World map data 2
   tabPanel("Global Plot", icon = icon("globe"),
   
     # Sidebar with a numeric input for mean and var
@@ -55,7 +83,7 @@ shinyjs::useShinyjs(),
       mainPanel(
         
         # OUTPUT: Plot the globe map
-        girafeOutput("distPlot")
+        girafeOutput("distPlot", height = "120%")
       )
     )
   ),
@@ -187,4 +215,3 @@ shinyjs::useShinyjs(),
                       ))
 
 ))
-#### END OF UI CODE
