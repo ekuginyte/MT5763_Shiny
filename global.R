@@ -245,10 +245,10 @@ map <- function(data = dat, world_map = get.world.map(), input_choice) {
   
   # Use ggplot to plot the map
   plot_map <- ggplot() + 
-    geom_polygon_interactive(data = subset(world_map), color = 'darkgray', size = 0.2,
+    geom_polygon_interactive(data = subset(world_map), color = 'red', size = 0.2,
                              aes(x = long, y = lat, fill = numeric, group = group, 
                                  tooltip = sprintf("%s<br/>%s", region, numeric))) + 
-    scale_fill_gradientn(colours = brewer.pal(4, "BuPu"), na.value = 'white') +
+    scale_fill_gradientn(colours = brewer.pal(7, "Oranges"), na.value = 'white') +
     created_theme()
   
   # Return the plot
@@ -302,7 +302,10 @@ get.plot <- function(plotName = "vbar", df) {
 }
 
 
-get.time.series.data <- function(type = "confirmed", minDate = as.Date("1/22/20", format = "%m/%d/%y"), maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2, countries = NA){
+get.time.series.data <- function(type = "confirmed", 
+                                 minDate = as.Date("1/22/20", format = "%m/%d/%y"), 
+                                 maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2, 
+                                 countries = NA){
   # Function - Scrape data from GitHub and wrangle
   # Input - type : ["confirmed", "deaths", "recovered"],
   #         minDate : eg. as.Date("m/d/y", format="%m/%d/%Y", 
@@ -426,7 +429,41 @@ confirmed_total_map <-  function(user_input = "confirmed",
   # Add the cases to the world map data frame
   world_map_2["cases"] <- df[match(world_map_2$Region, df$Region),format(date, format = "%m/%d/%y")]
   
-  ############################## LEFLET ########################################
+  # Population data
+  # Download the whole web page of population
+  html_page <- read_html("https://www.worldometers.info/world-population/population-by-country/") 
+  
+  # Access the whole table
+  pd <- html_page %>%
+    html_nodes("#example2") %>%
+    html_table %>% 
+    data.frame()
+  
+  # Find covid data country name equivalents in world data
+  wrong_titles <- c("Antigua and Barbuda", "Czech Republic (Czechia)", 
+                    "United Kingdom", "Saint Kitts & Nevis", "Sao Tome & Principe",
+                    "Trinidad and Tobago", "United States", "St. Vincent & Grenadines")
+  
+  new_titles <- c("Antigua", "Czech Republic", "UK", "Saint Kitts",
+                  "Sao Tome and Principe", "Trinidad", "USA",
+                  "Grenadines")
+  
+  # Rename countries in the covid data to match the world data
+  for (i in 1:length(wrong_titles)) {
+    pd$Country..or.dependency.[pd$Country..or.dependency. == 
+                                 wrong_titles[i]] <- new_titles[i]
+  }
+  
+  # Add population to the data frame
+  pd$Population..2020. <- as.numeric(gsub(",", "", pd$Population..2020.))
+  world_map_2["population"] <- pd$Population..2020.[
+    match(world_map_2$Region, pd$Country..or.dependency.)] 
+  world_map_2$population <- as.numeric(gsub(",", "", world_map_2$population))
+  
+  # Cases relative to population
+  world_map_2$cases <- world_map_2$cases / world_map_2$population * 100
+  
+  ############################## LEAFLET ########################################
 
   # Plotting parameters for the world map
   #bins <- c(0, 10, 50, 100, 500, 1000, Inf)
@@ -466,10 +503,10 @@ confirmed_total_map <-  function(user_input = "confirmed",
   
   # Use ggplot to plot the map
   plot_map <- ggplot() + 
-    geom_polygon_interactive(data = subset(world_map_2), color = 'darkgray', size = 0.2,
+    geom_polygon_interactive(data = subset(world_map_2), color = 'red', size = 0,
                              aes(x = long, y = lat, fill = cases, group = group, 
                                  tooltip = sprintf("%s<br/>%s", Region, cases))) + 
-    scale_fill_gradientn(colours = brewer.pal(4, "BuPu"), na.value = 'white') +
+    scale_fill_gradientn(colours = brewer.pal(7, "Oranges"), na.value = "white") +
     created_theme()
   
   # Return the plot
@@ -478,3 +515,4 @@ confirmed_total_map <-  function(user_input = "confirmed",
 
 # Regions that need matching can be found by using 
 #df$Region[is.na(match(unique(df$Region), unique(world_map$region)))]
+
