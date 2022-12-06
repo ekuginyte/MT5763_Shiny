@@ -8,18 +8,27 @@ ui <- fluidPage(
 shinyjs::useShinyjs(), 
   
   # Navbar structure for ui
-  navbarPage("Covid-19 Tracker", theme = shinytheme("flatly"),
+  navbarPage("Covid-19 Tracker", theme = shinytheme("paper"),
              
   ### World map data 1
   tabPanel("Covid-19 Map", icon = icon("map"),
            #leaflet::leafletOutput("confirmed_map", width="100%", height=),
            sidebarLayout(
-           sidebarPanel(shinyWidgets::sliderTextInput("plot_date",
-                        label = "Plot date",
-                        choices = "10/17/22",
-                        selected = "10/17/22",
-                        grid = FALSE,
-                        animate = animationOptions(interval = 3000, loop = FALSE)),
+             
+           sidebarPanel(sliderInput(inputId = "plot_date", 
+                         label = "Date Range:",
+                         min = min(dateOptions),
+                         max = max(dateOptions),
+                         value = max(dateOptions))),
+                         #value = c(as.Date(today() - 180), as.Date(Sys.Date()-1))),
+             
+             
+           #sidebarPanel(shinyWidgets::sliderTextInput("plot_date",
+          #              label = "Plot date",
+          #              choices = "10/17/22",
+          #              selected = "10/17/22",
+          #              grid = FALSE,
+          #              animate = animationOptions(interval = 3000, loop = FALSE)),
            
                        selectInput(inputId = "map_data_choice",
                                    label = "Data to display:",
@@ -130,7 +139,7 @@ shinyjs::useShinyjs(),
                downloadLink('downloadData', 'Download Data')
              ),
              
-             actionButton(inputId = "refresh", label = "Refresh Data"),
+            # actionButton(inputId = "refresh", label = "Refresh Data"),
            
            mainPanel(
              
