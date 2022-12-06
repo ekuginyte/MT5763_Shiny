@@ -10,42 +10,26 @@ shinyjs::useShinyjs(),
              
   ### World map data 1
   tabPanel("Covid-19 Map", icon = icon("map"),
-           #tags$head(includeCSS("styles.css")),
-           leafletOutput("confirmed_map", width = "100%", height = "100%"),
-           
-           absolutePanel(id = "controls", class = "panel panel-default",
-                         top = 75, left = 55, width = 250, fixed = TRUE,
-                         draggable = TRUE, height = "auto",
-                         
-                         label = h5("Select date for mapping"),
-                                    sliderTextInput("plot_date",
-                                      choices = format(unique(cv_cases$date), "%d %m %y"),
-                                      selected = format(current_date, "%d %m %y"),
-                                      grid = FALSE,
-                                      animate = animationOptions(interval = 3000, loop = FALSE))
-           ),
-           
-    
-           # Sidebar with a numeric input for mean and var
-           # and a slider input for bin
            sidebarLayout(
-             # Side panel
-             sidebarPanel(
-               # INPUT: Type of data
-               selectInput(inputId = "map_data_choice",
-                           label = "Data to display:",
-                           choices = list(
-                             "Total Number of Covid-19 Cases" = user_input)),
-               
-               sliderTextInput("plot_date",
-                               label = h5("Select mapping date"),
-                               choices = format(unique(cv_cases$date), "%d %b %y"),
-                               selected = format(current_date, "%d %b %y"),
-                               grid = FALSE,
-                               animate = animationOptions(interval = 3000, loop = FALSE))
-      )       
-    )
-  ),
+           sidebarPanel(sliderTextInput("plot_date",
+                        label = "Plot date",
+                        choices = c(""),
+                        grid = FALSE,
+                        animate = animationOptions(interval = 3000, loop = FALSE)),
+           
+                       selectInput(inputId = "map_data_choice",
+                                   label = "Data to display:",
+                                   choices = list(
+                                     "Number of Cases" = "confirmed",
+                                     "Numver of Deaths" = "deaths",
+                                     "Number of Recovered" = "recovered"))
+      ),
+      
+      mainPanel(
+        # Can change output if you want
+        leafletOutput("confirmed_map")
+      )
+  )),
            
   ### World map data 2
   tabPanel("Global Plot", icon = icon("globe"),
@@ -205,6 +189,9 @@ shinyjs::useShinyjs(),
            )
           
   ),
+  
+  actionButton("refresh", "Update"),
+  
   
   navbarMenu("More",
              tabPanel("About", 

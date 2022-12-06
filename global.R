@@ -413,7 +413,7 @@ get.world.map.2 <- function() {
 #  OUTPUT:
 #    plot_map_1 - map plot of selected data.
 confirmed_total_map <-  function(user_input, date) {
-  df <- get.time.series.data(type = user_input, maxDate)
+  df <- get.time.series.data(type = user_input, minDate = date)
   df$Cases <- rowSums(df[2:ncol(df)])
   
   # Add the sum of cases to the world map data frame
