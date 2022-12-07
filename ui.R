@@ -10,74 +10,41 @@ shinyjs::useShinyjs(),
   # Navbar structure for ui
   navbarPage("Covid-19 Tracker", theme = shinytheme("paper"),
              
-  ### World map data 1
-  tabPanel("Historical Map", icon = icon("map"),
+  ### Map data page
+  tabPanel("Data Map", icon = icon("map"),
            sidebarLayout(
              sidebarPanel(
-               
-               # Input date to display
-               dateInput("plot_date",
-                        label = "Date: ",
-                        min = as.Date("01/22/20", format = "%m/%d/%y"),
-                        max = as.Date(strftime(Sys.time(), "%Y/%m/%d")),
-                        value = as.Date("01/01/21")),
+               # INPUT: User selects the date
+               sliderTextInput("plot_date",
+                               label = "Date:",
+                               choices = dateOptions,
+                               selected = lastRefresh,
+                               grid = FALSE,
+                               animate = animationOptions(interval = 5, loop = FALSE)),
                           
-              # Input the type of covid data to display
+              # INPUT: Type of covid data to display
                selectInput(inputId = "map_data_choice",
                            label = "Data to display:",
                            choices = list(
-                             "Number of Cases" = "confirmed",
-                             "Numver of Deaths" = "deaths",
-                             "Number of Recovered" = "recovered"),
-                           selected = "confirmed")
+                             "Confirmed cases per million of population" = "confirmed",
+                             "Deaths per million of population" = "deaths",
+                             "Recoveries per million of population" = "recovered"),
+                           selected = "confirmed"),
+              
+              # OUTPUT: Download the map
+              downloadLink('download_map_plot', 'Download Map'),
+              
+              # OUTPUT: Download the map data
+              downloadLink('download_map_data', 'Download Map Data')
       ),
       
       mainPanel(
         # Output the map generated
-        girafeOutput("worldMap1")
+        girafeOutput("world_map", height = "120%")
       )
   )),
            
-  ### World map data 2
-  tabPanel("Current Map", icon = icon("globe"),
-  
-    # Sidebar with a numeric input for mean and var
-    # and a slider input for bin
-    sidebarLayout(
-      # Side panel
-      sidebarPanel(
-        # INPUT: Type of data
-        selectInput(inputId = "globeDataChoice",
-                    label = "Data to display:",
-                    choices = list(
-                      "Number of Cases" = "total_cases", 
-                      "Number of Cases per 1 mln of Population" = "cases_per1m",
-                      "Number of Deaths" = "total_deaths", # *
-                      "Number of Deaths per 1 mln of Population" = "deaths_per1m",
-                      "Number of Recoveries" = "total_recovered", 
-                      "Number of Active Cases" = "active_cases", 
-                      "Number of Active Case per 1 mln of Population" = "active_per1m", 
-                      "Number of Serious Cases" = "serious_cases",
-                      "Number of Tests" = "total_tests", 
-                      "Number of Tests per 1 mln of Population" = "tests_per1m", 
-                      "Population" = "population")),
-        
-        # OUTPUT: Button to download current map instant and data
-        actionButton(inputId = "getCurrentData",
-                     label = "Download Map"),
-        
-        # OUTPUT: Download button for the world plot shown
-        downloadLink('downloadGlobePlot', 'Download Plot Data')
-        ),
-      
-      # Main panel
-      mainPanel(
-        
-        # OUTPUT: Plot the globe map
-        girafeOutput("distPlot", height = "120%")
-      )
-    )
-  ),
+ 
   
   ### Data page
   tabPanel("Data", icon = icon("database"),
@@ -85,33 +52,17 @@ shinyjs::useShinyjs(),
            sidebarLayout(
              sidebarPanel(
                # INPUT: Select choice of data
-               checkboxGroupInput(inputId = "dataChoice",
-                             label = "Choice of data to display",
+               checkboxGroupInput(inputId = "map_data_choice",
+                             label = "Data to display",
                              choiceNames = list(
-                               "Number of Cases", 
-                               "Number of Cases per 1 mln of Population",
-                               "Number of Deaths",
-                               "Number of Deaths per 1 mln of Population",
-                               "Number of Recoveries", 
-                               "Number of Active Cases", 
-                               "Number of Active Case per 1 mln of Population", 
-                               "Number of Serious Cases",
-                               "Number of Tests", 
-                               "Number of Tests per 1 mln of Population", 
-                               "Population"
+                               "Confirmed cases per million of population",
+                               "Deaths per million of population",
+                               "Recoveries per million of population"
                              ),
                              choiceValues = list(
-                               "total_cases", 
-                               "cases_per1m",
-                               "total_deaths",
-                               "deaths_per1m",
-                               "total_recovered", 
-                               "active_cases", 
-                               "active_per1m", 
-                               "serious_cases",
-                               "total_tests", 
-                               "tests_per1m", 
-                               "population"
+                               "confirmed",
+                               "deaths",
+                               "recovered"
                              ),
                              selected = list("Number of Cases")
                              ),
@@ -119,7 +70,7 @@ shinyjs::useShinyjs(),
                # INPUT: Select countries
                selectInput(inputId = "dataCountries",
                            label = "Countries",
-                           choices = unique(map_data("world")$region),
+                           choices = unique(df_stats$Region),
                            multiple = TRUE,
                            selected = "UK"),
                
@@ -141,7 +92,6 @@ shinyjs::useShinyjs(),
   )),
   
   ### Plots page
-  
   tabPanel("Plots", icon = icon("chart-column"),
            
            sidebarLayout(
@@ -152,17 +102,9 @@ shinyjs::useShinyjs(),
                selectInput(inputId = "plotDataChoice",
                            label = "Data to display:",
                            choices = list(
-                             "Number of Cases" = "total_cases", 
-                             "Number of Cases per 1 mln of Population" = "cases_per1m",
-                             "Number of Deaths" = "total_deaths", # *
-                             "Number of Deaths per 1 mln of Population" = "deaths_per1m",
-                             "Number of Recoveries" = "total_recovered", 
-                             "Number of Active Cases" = "active_cases", 
-                             "Number of Active Case per 1 mln of Population" = "active_per1m", 
-                             "Number of Serious Cases" = "serious_cases",
-                             "Number of Tests" = "total_tests", 
-                             "Number of Tests per 1 mln of Population" = "tests_per1m", 
-                             "Population" = "population")),
+                             "Confirmed cases per million of population" = "confirmed",
+                             "Deaths per million of population" = "deaths",
+                             "Recoveries per million of population" = "recovered")),
                
                # INPUT: choice of plot
                selectInput(inputId = "plotTypeChoice",
@@ -175,16 +117,16 @@ shinyjs::useShinyjs(),
                # INPUT: coutries to plot data from
                selectizeInput(inputId = "plotCountries",
                            label = "Countries (max 10)",
-                           choices = unique(map_data("world")$region),
+                           choices = unique(df_stats$Region),
                            multiple = TRUE,
                            selected = "UK",
                            options = list(maxItems = 10)
                            ),
                
-               # OUTPUT: Link to download plot shown
-               downloadLink('downloadPlotData', 'Download Plot Data'),
+               # OUTPUT: Link to download plot shown as jpg
+               downloadLink('downloadPlotData', 'Download Plot'),
                
-               # OUTPUT: Link to download plot dataset
+               # OUTPUT: Link to download plot dataset as csv
                downloadLink('downloadPlot', 'Download Plot Data')
              ),
              # Main panel
