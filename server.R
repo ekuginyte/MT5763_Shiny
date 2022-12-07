@@ -12,16 +12,17 @@ if (any(installed_packages == FALSE)) {
 
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
+library(shinythemes)
 
 # Current date
 lastSessionStart <- as.Date(strftime(Sys.time(), "%Y/%m/%d"))
 
-# Data frame containing covid data 2
-dat <- get.data(website = "https://www.worldometers.info/coronavirus/", 
-         table_name = "#main_table_countries_today")
-
 # Initial dataset
+map_data_choice <- "confirmed"
 TSData <- get.time.series.data()
+
+# Extract dates from the time series data
+dateOptions <- names(TSData[-1])
 
 ### Server
 server <- function(input, output){
@@ -30,22 +31,32 @@ server <- function(input, output){
    
    # Refresh when clicked
     input$refresh, {
-    # Refresh every hour
-    #invalidateLater(3600000)
-    # Extract time series data
-    #TSData <- get.time.series.data()
-    # Save today's date
-    #lastRefresh <- as.Date(strftime(Sys.time(), "%Y/%m/%d"))
-    # Extract all possible dates
-    #dateOptions <- names(TSData[-1])
-    #dateOptions <- as.Date(dateOptions, "%m/%d/%y")
-    showNotification("Data Refreshed")
+      
+      # Initial dataset
+      map_data_choice <- "confirmed"
+      TSData <- get.time.series.data()
+      
+      # Extract dates from the time series data
+      dateOptions <- names(TSData[-1])  
+    
+      # Refresh every hour
+      #invalidateLater(3600000)
+      # Extract time series data
+      #TSData <- get.time.series.data()
+      # Save today's date
+      lastRefresh <- as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2
+      lastRefresh <- format(lastRefresh, "%m/%d/%y") 
+      # Extract all possible dates
+      #dateOptions <- names(TSData[-1])
+      #dateOptions <- as.Date(dateOptions, "%m/%d/%y")
+      showNotification("Data Refreshed")
   })
   
   ### Globe plot page
   # Plot the world map 
-  output$worldMap1 <- renderGirafe({
-    ggiraph(code = print(get.world.map.2b(input$map_data_choice, date = input$plot_date, df = TSData)))
+  output$world_map <- renderGirafe({
+    ggiraph(code = print(get.world.map(type = input$map_data_choice, 
+                                       date = input$plot_date, df = TSData)))
   })
   
   # Plot the JHU data map
@@ -58,40 +69,35 @@ server <- function(input, output){
     #confirmed_total_map(user_input = input$map_data_choice, date = plot_date)
   #})
     
-    # Save plot
-  #output$downloadMapPlot <- downloadHandler(
-  #    filename <- function() {
-  #      paste("Covid-19_map_", input$map_data_choice, "_", Sys.Date(), ".jpg", sep = "")
-  #    },
-  #    content <- function(con) {
-  #      ggsave(con)
-  #    }
-  #  )
-  
-  # Plot the world map 
-  output$distPlot <- renderGirafe({
-    ggiraph(code = print(map(data = dat, input_choice = input$globeDataChoice)))
-  })
-  
   # Save plot
-  output$downloadGlobePlot <- downloadHandler(
-    filename = function(){
-      paste("Covid-19_map_",input$globeDataChoice,"_",Sys.Date(),".jpg", sep = "")
+  output$download_map_plot <- downloadHandler(
+      filename <- function() {
+        paste("Covid-19_map_", input$map_data_choice, "_", Sys.Date(), ".jpg", sep = "")
+      },
+      content <- function(con) {
+        ggsave(con)
+      }
+    )
+  
+  # Save mapping data
+  output$download_map_data <- downloadHandler(
+    filename = function() {
+      paste("Covid-19_data_", Sys.Date(),'.csv', sep='')
     },
     content = function(con) {
-      ggsave(con)
+      write.csv(dfInput(), con)
     }
   )
   
-  ### Data plot page
   
+  ### Data plot page
   dfInput <- reactive({
-    get.df(input$dataFormat, dat, input$dataChoice, input$dataCountries)})
+    get.df(input$dataFormat, dat, input$map_data_choice, input$dataCountries)})
   
   output$dataToDownload <- renderDataTable(dfInput())
   
   output$downloadData <- downloadHandler(
-    filename = function(){
+    filename = function() {
       paste("Covid-19_data_", Sys.Date(),'.csv', sep='')
     },
     content = function(con) {
@@ -100,19 +106,18 @@ server <- function(input, output){
   )
   
   ### Plot page
-  
   plotdfInput <- reactive({
-    get.df("l", dat, input$plotDataChoice, input$plotCountries)})
+    get.df("l", dat, input$map_data_choice, input$plotCountries)})
   
   # Plot specified map
   output$plot <- renderGirafe({
-    ggiraph(code = print(get.plot(plotName = input$plotTypeChoice, df = plotdfInput())))
+    ggiraph(code = print(get.plot(plotName = input$plotTypeChoice, df_stats = plotdfInput())))
   })
   
   # Save plot 
   output$downloadPlot <- downloadHandler(
     filename = function(){
-      paste("Covid-19_map_",input$plotDataChoice,"_",input$plotTypeChoice,Sys.Date(),".jpg", sep = "")
+      paste("Covid-19_map_",input$map_data_choice,"_",input$plotTypeChoice, Sys.Date(),".jpg", sep = "")
     },
     content = function(con) {
       ggsave(con)
@@ -122,7 +127,7 @@ server <- function(input, output){
   # Save plot dataset
   output$downloadPlotData <- downloadHandler(
     filename = function(){
-      paste("Covid-19_map_",input$plotDataChoice,"_",input$plotTypeChoice,Sys.Date(),".csv", sep = "")
+      paste("Covid-19_map_",input$map_data_choice,"_",input$plotTypeChoice, Sys.Date(),".csv", sep = "")
     },
     content = function(con) {
       write.csv(dfInput(), con)
@@ -130,3 +135,4 @@ server <- function(input, output){
   )
   
 }
+
