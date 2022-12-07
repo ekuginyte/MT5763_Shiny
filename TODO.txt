@@ -1,18 +1,7 @@
 ## To do
 
-- README.md
-- Transfer all functions to global.R. Dependicies need checking
-- Additionaly plot options
-- Refresh button
-- Get coehrrent naming convention for ease of reading
-- Interactive map ui -EK
-- New data -J
-- Total cases
-- Time series data mapped
-- Continent plots (if we have continent data)
-
-
-
 07/12
 - Make sure the user can select confirmed/death/recovered data
-- fix map legend
+- Display number of total cases
+- Data and plots pages still not working
+- Unable to stack two download buttons
