@@ -10,3 +10,9 @@
 - Total cases
 - Time series data mapped
 - Continent plots (if we have continent data)
+
+
+
+07/12
+- Make sure the user can select confirmed/death/recovered data
+- fix map legend
