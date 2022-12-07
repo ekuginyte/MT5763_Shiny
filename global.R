@@ -216,7 +216,7 @@ get.world.map <- function() {
 
 #!! data = dat assumes dat is initialised always
 
-map <- function(data = dat, world_map = get.world.map(), input_choice) {
+map <- function(data = NA, world_map = get.world.map(), input_choice) {
   
   # Selected plot look, function
   created_theme <- function () { 
@@ -283,7 +283,6 @@ get.df <- function(format, df_0, choices, countries){
   }
 }
 
-
 # Plots function for plot page
 get.plot <- function(plotName = "vbar", df) {
   if (plotName == "vbar"){
@@ -300,7 +299,6 @@ get.plot <- function(plotName = "vbar", df) {
   }
   return(p)
 }
-
 
 get.time.series.data <- function(type = "confirmed", 
                                  minDate = as.Date("1/22/20", format = "%m/%d/%y"), 
@@ -515,4 +513,66 @@ confirmed_total_map <-  function(user_input = "confirmed",
 
 # Regions that need matching can be found by using 
 #df$Region[is.na(match(unique(df$Region), unique(world_map$region)))]
+
+# NEW MAP FUNCTION FOR JHU DATA
+# GitHub data map plotting functions
+# Total confirmed cases
+#  INPUT:
+#    user_input - selection of type of plot;
+#    date - selection of date.
+#    df - overall df which will be queried
+#  OUTPUT:
+#    plot_map_1 - map plot of selected data.
+get.world.map.2b <-  function(user_input = "confirmed", 
+                             date =  as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2,
+                             df) {
+  df <- df %>%
+    select(c("Region", format(date, format = "%m/%d/%y")))
+  
+  world_map_2 <- map_data("world") %>%
+    fortify()
+  
+  # Check which regions don't have any covid data
+  dif <-  setdiff(unique(world_map_2$region), df$Region)
+  # Delete
+  world_map_2 <- world_map_2[!world_map_2$region %in% dif, ]
+  
+  # Delete regions with no covid data
+  world_map_2 <- subset(world_map_2, 
+                        region != "Burma" & region != "Cabo Verde" &
+                          region != "Nevis" & region != "Tobago")
+  
+  # Rename column name to match with covid data frame
+  names(world_map_2)[names(world_map_2) == "region"] <- "Region"
+  
+  # Add the cases to the world map data frame
+  world_map_2["cases"] <- df[match(world_map_2$Region, df$Region),format(date, format = "%m/%d/%y")]
+  
+  # Selected plot look, function
+  created_theme <- function () { 
+    theme_minimal() + 
+      theme(panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            panel.background = element_blank(), 
+            panel.border = element_blank(), 
+            strip.background = element_rect(fill = "red", colour = "red"),
+            legend.position = "top")
+  }
+  
+  # Use ggplot to plot the map
+  plot_map <- ggplot() + 
+    geom_polygon_interactive(data = subset(world_map_2), color = 'red', size = 0,
+                             aes(x = long, y = lat, fill = cases, group = group, 
+                                 tooltip = sprintf("%s<br/>%s", Region, cases))) + 
+    scale_fill_gradientn(colours = brewer.pal(7, "Oranges"), na.value = "white") +
+    created_theme()
+  
+  # Return the plot
+  return(plot_map)
+}
+
+
 

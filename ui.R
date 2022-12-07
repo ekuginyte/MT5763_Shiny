@@ -11,41 +11,35 @@ shinyjs::useShinyjs(),
   navbarPage("Covid-19 Tracker", theme = shinytheme("paper"),
              
   ### World map data 1
-  tabPanel("Covid-19 Map", icon = icon("map"),
-           #leaflet::leafletOutput("confirmed_map", width="100%", height=),
+  tabPanel("Historical Map", icon = icon("map"),
            sidebarLayout(
-             
-           sidebarPanel(sliderInput(inputId = "plot_date", 
-                         label = "Date Range:",
-                         min = min(dateOptions),
-                         max = max(dateOptions),
-                         value = max(dateOptions))),
-                         #value = c(as.Date(today() - 180), as.Date(Sys.Date()-1))),
-             
-             
-           #sidebarPanel(shinyWidgets::sliderTextInput("plot_date",
-          #              label = "Plot date",
-          #              choices = "10/17/22",
-          #              selected = "10/17/22",
-          #              grid = FALSE,
-          #              animate = animationOptions(interval = 3000, loop = FALSE)),
-           
-                       selectInput(inputId = "map_data_choice",
-                                   label = "Data to display:",
-                                   choices = list(
-                                     "Number of Cases" = "confirmed",
-                                     "Numver of Deaths" = "deaths",
-                                     "Number of Recovered" = "recovered"))
+             sidebarPanel(
+               
+               # Input date to display
+               dateInput("plot_date",
+                        label = "Date: ",
+                        min = as.Date("01/22/20", format = "%m/%d/%y"),
+                        max = as.Date(strftime(Sys.time(), "%Y/%m/%d")),
+                        value = as.Date("01/01/21")),
+                          
+              # Input the type of covid data to display
+               selectInput(inputId = "map_data_choice",
+                           label = "Data to display:",
+                           choices = list(
+                             "Number of Cases" = "confirmed",
+                             "Numver of Deaths" = "deaths",
+                             "Number of Recovered" = "recovered"),
+                           selected = "confirmed")
       ),
       
       mainPanel(
-        # Can change output if you want
-        girafeOutput("confirmed_map")
+        # Output the map generated
+        girafeOutput("worldMap1")
       )
   )),
            
   ### World map data 2
-  tabPanel("Global Plot", icon = icon("globe"),
+  tabPanel("Current Map", icon = icon("globe"),
   
     # Sidebar with a numeric input for mean and var
     # and a slider input for bin
@@ -80,7 +74,7 @@ shinyjs::useShinyjs(),
       mainPanel(
         
         # OUTPUT: Plot the globe map
-        ggiraph::girafeOutput("distPlot", height = "120%")
+        girafeOutput("distPlot", height = "120%")
       )
     )
   ),
@@ -139,8 +133,6 @@ shinyjs::useShinyjs(),
                downloadLink('downloadData', 'Download Data')
              ),
              
-            # actionButton(inputId = "refresh", label = "Refresh Data"),
-           
            mainPanel(
              
              # OUTPUT: Display data frame from query
@@ -199,17 +191,19 @@ shinyjs::useShinyjs(),
              mainPanel(
                
                # OUTPUT: Plot the map from above query
-               ggiraph::girafeOutput("plot")
+               girafeOutput("plot")
              )
            )
           
   ),
   
+  actionButton(inputId = "refresh", label = "Refresh Data"),
+  
   navbarMenu("More",
              tabPanel("About", 
                       fluidRow(column(6,
                                       includeMarkdown("Readme.md")))),
-             # ADD REFRESH BUTTON IN HERE
+             
              tabPanel("Current Data Set"
                       ))
 
