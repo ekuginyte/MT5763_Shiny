@@ -6,7 +6,7 @@ shinyjs::useShinyjs(),
   
   # Navbar structure for ui
   navbarPage("Covid-19 Tracker", theme = shinytheme("paper"),
-             
+  ################################################################################
   ### Map data page
   tabPanel("Data Map", icon = icon("globe"),
            sidebarLayout(
@@ -16,8 +16,7 @@ shinyjs::useShinyjs(),
                                label = "Date:",
                                choices = dateOptions,
                                selected = format(as.Date(
-                                 strftime(Sys.time(), "%Y/%m/%d")) - 2, "%m/%d/%y"),
-                               #selected = max(dateOptions),
+                               strftime(Sys.time(), "%Y/%m/%d")) - 2, "%m/%d/%y"),
                                grid = FALSE,
                                animate = animationOptions(interval = 5, loop = FALSE)
                ),
@@ -32,7 +31,7 @@ shinyjs::useShinyjs(),
                            selected = "confirmed"),
               
               # OUTPUT: Download the map
-              #downloadLink('download_map_plot', 'Download Map'),
+              downloadLink('download_map_plot', 'Download Map'),
               
               # OUTPUT: Download the map data
               downloadLink('download_map_data', 'Download Map Data')
@@ -43,9 +42,7 @@ shinyjs::useShinyjs(),
         girafeOutput("world_map", height = "115%")
       )
   )),
-           
- 
-  
+  ################################################################################
   ### Data page
   tabPanel("Data", icon = icon("database"),
            
@@ -90,7 +87,7 @@ shinyjs::useShinyjs(),
              dataTableOutput("data_to_download")
            )
   )),
-  
+  ################################################################################
   ### Plots page
   tabPanel("Plots", icon = icon("chart-column"),
            
@@ -110,8 +107,8 @@ shinyjs::useShinyjs(),
                selectInput(inputId = "plot_type_choice",
                            label = "Graph Type:",
                            choices = list(
-                             "Vertical Bar Chart" = "vbar",
-                             "Pie Chart" = "pie"),
+                            "Vertical Bar Chart" = "vbar",
+                            "Pie Chart" = "pie"),
                            selected = "vbar"),
                
                # INPUT: countries to plot data from
@@ -139,9 +136,12 @@ shinyjs::useShinyjs(),
            )
           
   ),
-  
+  ################################################################################
+  # Floating Refresh Button
   actionButton(inputId = "refresh", label = "Refresh Data"),
   
+  ################################################################################
+  ### Additional info
   navbarMenu("More",
              tabPanel("About", 
                       fluidRow(column(6,

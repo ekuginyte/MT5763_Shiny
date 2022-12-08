@@ -1,6 +1,8 @@
 #### Functions for Server and UI files
 
-# Packages
+################################################################################
+############################ PACKAGE HANDLING ##################################
+################################################################################
 packages <- c("shiny", "tidyverse", "robotstxt", "rvest", "maps", "ggmap", 
               "ggplot2", "ggiraph", "RColorBrewer", "reshape2", "shinyjs", 
               "shinythemes", "shinydashboard", "sf", "rgdal", "leaflet", 
@@ -20,6 +22,11 @@ invisible(lapply(packages, library, character.only = TRUE))
 lastRefresh <- as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2
 lastRefresh <- format(lastRefresh, "%m/%d/%y") 
 
+################################################################################
+############################### FUNCTIONS ######################################
+################################################################################
+
+### get.time.series.data
 # Function to scrape data from GitHub and wrangle
 #   INPUT:
 #     type - ["confirmed", "deaths", "recovered"],
@@ -57,7 +64,7 @@ get.time.series.data <- function(type,
     rename_at(vars(names(df[-1])), ~as.character(format(
       as.Date(names(df[-1]), format = "%m/%d/%y"), format = "%m/%d/%y"))) %>%
     # Select all the dates found above
-    dplyr::select(all_of(dates)) %>%
+    select(all_of(dates)) %>%
     # Combine any rows which have the same region
     summarise_all(funs(sum(na.omit(.))))
   
@@ -79,8 +86,9 @@ get.time.series.data <- function(type,
   return(df)
 }
 
+################################################################################
 
-
+### get.population
 # Function to extract world population data from worldometers.info
 #  OUTPUT:
 #     pd - data frame with world population column.
@@ -113,6 +121,9 @@ get.population <- function() {
   return(pd)
 }
 
+################################################################################
+
+### get.world.map
 # GitHub data map plotting function
 #  INPUT:
 #    user_input - selection of type of plot;
@@ -120,8 +131,10 @@ get.population <- function() {
 #    df - overall df which will be queried
 #  OUTPUT:
 #    plot_map - map plot of selected data.
-get.world.map <-  function(type, date, df) {
+get.world.map <-  function(type, date, Curr_TSDATA) {
   
+  # Filter the timeseries set to be the type selected
+  df <- Curr_TSDATA[[type]]
   # Get total cases from selected data type
   df <- df %>%
     select(c("Region", format(date, format = "%m/%d/%y")))
@@ -182,21 +195,20 @@ get.world.map <-  function(type, date, df) {
   return(plot_map)
 }
 
+################################################################################
 
+### get.world.stats
 # GitHub data stats function
 #  INPUT:
 #    user_input - selection of type of plot;
 #    date - selection of date.
 #  OUTPUT:
 #    df_stats - map plot of selected data.
-get.world.stats <-  function(type, date, df_stats = NULL) {
-  
-  # Extract the time series data if none passedhat
-  df_stats <- get.time.series.data(type, maxDate = date)
+get.world.stats <-  function(date, df_stats = NULL) {
   
   # Get total cases from selected data type
   df_stats <- df_stats %>%
-    dplyr::select(c("Region", format(date, format = "%m/%d/%y")))
+   select(c("Region", format(as.Date(date), format = "%m/%d/%y")))
 
   # Add population to the data frame
   pd <- get.population()
@@ -213,7 +225,7 @@ get.world.stats <-  function(type, date, df_stats = NULL) {
   return(df_stats)
 }
 
-
+################################################################################
 
 # Function to get a data frame with choices for page 3
 #  INPUTS:
@@ -222,21 +234,21 @@ get.world.stats <-  function(type, date, df_stats = NULL) {
 #   date - selection of max date.
 #  OUTPUT:
 #   df - data frame with selected variables only.
-get.df1 <- function(regions, type, date) {
+#get.df1 <- function(regions, type, date, Curr_TSDATA) {
   
   # Get data frame with selected data type 
-  df <- get.world.stats(type = type, date = date)
+  #df <- get.world.stats(date = date, df_stats = Curr_TSDATA[[type]])
   
   # Produce data frame only with countries selected
-  df <- df[df$Region %in% regions, ]
+  #df <- df[df$Region %in% regions, ]
   
   # Return the data frame
-  return(df)
-}
+  #return(df)
+#}
 
+################################################################################
 
-
-# Plots function for plot page
+### get.plot - Plots function for plot page
 #  INPUTS:
 #   plot_name - type of plot to produce,
 #   regions - user's selected regions,
@@ -244,14 +256,15 @@ get.df1 <- function(regions, type, date) {
 #   date - user's selected max date.
 #  OUTPUTS:
 #   p - either bar or pie chart plot.
-get.plot <- function(plot_name, regions, type, date) {
+get.plot <- function(plot_name, regions, type, date, Curr_TSDATA) {
   
   # Make sure the input is in date format
   #date <- format(mdy(date), "%m/%d/%y")
   date <- as.Date(date, "%m/%d/%y")
   
   # Extract the selected data
-  df <- get.df1(regions = regions, type = type, date = date)
+  df <- get.world.stats(date = date, df_stats = Curr_TSDATA[[type]])
+  df <- df[df$Region %in% regions, ]
   
   # Extract variables for ggplot
   x_var <- as.list(df$Region)
@@ -287,8 +300,9 @@ get.plot <- function(plot_name, regions, type, date) {
   return(p)
 }
 
+################################################################################
 
-# Function to return the selected data frame, Data Page
+### get.df2 - Function to return the selected data frame, Data Page
 #   INPUTS:
 #     date - user selects date on page 1,
 #     type - user selects type of data,
@@ -298,20 +312,21 @@ get.plot <- function(plot_name, regions, type, date) {
 #   OUTPUTS:
 #     df_0 - returns data frame of selected countries in long format,
 #     df_1 - returns data frame of selected countries in wide format.
-get.df2 <- function(date, type, countries, format) {
+get.df2 <- function(date, type, countries, format, Curr_TSDATA) {
   
   # Preset an empty data frame
-  df_0 <- data.frame(NA)
+  df_0 <- data.frame()
   
   # Make sure it's a date input
   date <- as.Date(date, "%m/%d/%y")
   
   # For however many types selected
   if (length(type) != 0) {
-    for (i in 1:seq(type)) {
+    #for (i in 1:seq(type)) {
+    for (i in type) {
       
       # Extract data with user's choices
-      df_00 <- get.world.stats(type = i, date = date)
+      df_00 <- get.world.stats(date = date, df_stats = Curr_TSDATA[[i]])
       
       # Extract user's selected regions
       df_00 <- df_00[df_00$Region %in% countries, ]
@@ -322,32 +337,38 @@ get.df2 <- function(date, type, countries, format) {
       # Drop the row with NA values
       df_0 <- drop_na(df_0)
     }
+  } else{
+    # Return empty data table if no types selected
+    return(df_0)
   }
-  else {
-    df_0 <- df
-  }
+  
   # Wide or long data
-  if (is_null(df) == FALSE) {
+  if ((is.data.frame(df_0) && nrow(df_0)) == FALSE) {
     if (format == "w"){
-      df_1 <- pivot_wider(df_0, names_from = "Region", values_from = "cases")
+      df_0 <- pivot_wider(df_0, names_from = "Region", values_from = "cases")
     }
-    return(df_1)
+    return(df_0)
   } else {
     return(df_0)
   }
 }
 
 
-
-### Initialise
+################################################################################
+############################### Initialise #####################################
+################################################################################
 
 # Initial dataset
-TSData <- get.time.series.data(type = "confirmed")
+types = c("confirmed", "deaths", "recovered")
+TSData <- vector('list', 3)
+for(type in types){
+  TSData[[type]] = get.time.series.data(type = type)
+}
 
 # Extract dates from the time series data
-dateOptions <- names(TSData[-1])
+dateOptions <- names(TSData[["deaths"]][-1])
 
 # Regions available
-all_regions <- TSData$Region
+all_regions <- TSData[["deaths"]]$Region
 
-
+################################################################################
