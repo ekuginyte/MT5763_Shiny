@@ -16,9 +16,9 @@ shinyjs::useShinyjs(),
                                label = "Date:",
                                choices = dateOptions,
                                selected = format(as.Date(
-                               strftime(Sys.time(), "%Y/%m/%d")) - 2, "%m/%d/%y"),
+                               strftime(Sys.time(), "%Y/%m/%d"), ) - 2, "%m/%d/%y"),
                                grid = FALSE,
-                               animate = animationOptions(interval = 5, loop = FALSE)
+                               animate = animationOptions(interval = 300, loop = FALSE)
                ),
                           
               # INPUT: Type of covid data to display

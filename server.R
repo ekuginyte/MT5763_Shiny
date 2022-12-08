@@ -25,38 +25,47 @@ server <- function(input, output) {
       showNotification("Data Refreshed")
       })
   
-  ### Map plot page
+  ##############################################################################
+  ############################# Map plot page ##################################
+  ##############################################################################
+  
   # Plot the world map 
   output$world_map <- renderGirafe({
     ggiraph(code = print(get.world.map(type = input$map_data_choice, 
-                                       date = as.Date(input$plot_date, "%m/%d/%y"), Curr_TSDATA = TSData)))
+                                       date = as.Date(input$plot_date, "%m/%d/%y"), Curr_TSDATA = TSData,
+                                       pd = today_pop)))
     })
   
   # Save Globe plot
   output$download_map_plot <- downloadHandler(
       filename <- function() {
-        paste("Covid-19_map_", input$map_data_choice, "_", Sys.Date(), ".png", sep = "")
+        paste("Covid-19_map_", input$map_data_choice, "_", Sys.Date(), "_", input$map_data_choice,".png", sep = "")
         },
       content <- function(file) {
-        ggsave(world_map, file)
+        ggsave(file)
         }
       )
   
   # Save mapping data
   output$download_map_data <- downloadHandler(
     filename = function() {
-      paste("Covid-19_data_", Sys.Date(), ".csv", sep = "")
+      paste("Covid-19_data_", Sys.Date(), "_", input$map_data_choice,".csv", sep = "")
       },
     content = function(file) {
-      write.csv(ts_df, file)
+      write.csv(TSData[[input$map_data_choice]][], file)
       }
     )
   
+  ##############################################################################
+  ############################## Data page #####################################
+  ##############################################################################
   
-  ### Data page
+  # Dataframe to display as a reactive element
   dfInput <- reactive({
-    get.df2(date = as.Date(input$plot_date, "%m/%d/%y"), type = input$data_page_choice, 
-            countries = input$data_countries, format = input$data_format,
+    get.df2(date = as.Date(input$plot_date, "%m/%d/%y"), 
+            data_type = input$data_page_choice, 
+            countries = input$data_countries, 
+            format = input$data_format,
             Curr_TSDATA = TSData)})
   
   output$data_to_download <- renderDataTable(dfInput())
@@ -70,7 +79,9 @@ server <- function(input, output) {
       }
     )
   
-  ### Plot page
+  ##############################################################################
+  ################################# Plot page ##################################
+  ##############################################################################
   
   # Plot specified map
   output$stat_plot <- renderGirafe({
@@ -88,7 +99,7 @@ server <- function(input, output) {
             Sys.Date(),".png", sep = "")
     },
     content = function(file) {
-      ggsave(file, plot = plotInput())
+      ggsave(file)
     }
   )
   
@@ -99,7 +110,7 @@ server <- function(input, output) {
             Sys.Date(),".csv", sep = "")
     },
     content = function(file) {
-      write.csv(dfInput(), file)
+      write.csv(file)
     }
   )
   

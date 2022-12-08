@@ -131,7 +131,7 @@ get.population <- function() {
 #    df - overall df which will be queried
 #  OUTPUT:
 #    plot_map - map plot of selected data.
-get.world.map <-  function(type, date, Curr_TSDATA) {
+get.world.map <-  function(type, date, Curr_TSDATA, pd = today_pop) {
   
   # Filter the timeseries set to be the type selected
   df <- Curr_TSDATA[[type]]
@@ -151,7 +151,7 @@ get.world.map <-  function(type, date, Curr_TSDATA) {
                            format(date, format = "%m/%d/%y")]
   
   # Add population to the data frame
-  pd <- get.population()
+  #pd <- get.population()
   pd$Population..2020. <- as.numeric(gsub(",", "", pd$Population..2020.))
   # Combine
   world_map["population"] <- pd$Population..2020.[
@@ -204,18 +204,18 @@ get.world.map <-  function(type, date, Curr_TSDATA) {
 #    date - selection of date.
 #  OUTPUT:
 #    df_stats - map plot of selected data.
-get.world.stats <-  function(date, df_stats = NULL) {
-  
-  # Get total cases from selected data type
+get.world.stats <-  function(date, df_stats = data.table(), pd = today_pop) {
+
+    # Get total cases from selected data type
   df_stats <- df_stats %>%
    select(c("Region", format(as.Date(date), format = "%m/%d/%y")))
 
   # Add population to the data frame
-  pd <- get.population()
+  # pd <- get.population()
   pd$Population..2020. <- as.numeric(gsub(",", "", pd$Population..2020.))
   
   # Combine the population data with the covid cases data
-  df_stats["population"] <- pd$Population..2020.[match(df_stats$Region, pd$Country..or.dependency.)] 
+  df_stats$population <- pd$Population..2020.[match(df_stats$Region, pd$Country..or.dependency.)] 
   df_stats$population <- as.numeric(gsub(",", "", df_stats$population))
   
   # Cases relative to population
@@ -312,7 +312,7 @@ get.plot <- function(plot_name, regions, type, date, Curr_TSDATA) {
 #   OUTPUTS:
 #     df_0 - returns data frame of selected countries in long format,
 #     df_1 - returns data frame of selected countries in wide format.
-get.df2 <- function(date, type, countries, format, Curr_TSDATA) {
+get.df2 <- function(date, data_type, countries, format, Curr_TSDATA) {
   
   # Preset an empty data frame
   df_0 <- data.frame()
@@ -321,31 +321,51 @@ get.df2 <- function(date, type, countries, format, Curr_TSDATA) {
   date <- as.Date(date, "%m/%d/%y")
   
   # For however many types selected
-  if (length(type) != 0) {
-    #for (i in 1:seq(type)) {
-    for (i in type) {
-      
+  if (length(data_type) != 0 && length(countries) != 0) {
+    data_type <- strsplit(data_type,"[[:space:]]")
+    dfs <- vector("list", length = length(data_type))
+    for (i in data_type) {
       # Extract data with user's choices
       df_00 <- get.world.stats(date = date, df_stats = Curr_TSDATA[[i]])
       
       # Extract user's selected regions
       df_00 <- df_00[df_00$Region %in% countries, ]
+      # Add what type of data this is
       
-      # Bind the data frame
-      df_0 <- cbind(df_0, df_00)
+      df_00 <- df_00 %>%
+        mutate(Type = i) %>%
+        select(-population) %>%
+        drop_na()
       
-      # Drop the row with NA values
-      df_0 <- drop_na(df_0)
+      # Add df to list to bind later
+      dfs[[i]] <- df_00
+      
     }
-  } else{
-    # Return empty data table if no types selected
-    return(df_0)
-  }
+  }  else if (length(data_type) != 0 && length(countries) == 0) {
+    data_type <- strsplit(data_type,"[[:space:]]")
+    dfs <- vector("list", length = length(data_type))
+    for (i in data_type) {
+      # Extract data with user's choices
+      df_00 <- get.world.stats(date = date, df_stats = Curr_TSDATA[[i]])
+      
+      df_00 <- df_00 %>%
+        mutate(Type = i) %>%
+        select(-population) %>%
+        drop_na()
+      # Add df to list to bind later
+      dfs[[i]] <- df_00
+    }
+    } else{
+      # No data types chosen, display nothing, even if countries chosen
+      return(df_0)
+    }
+    # Bind dataframes
+    df_0 <- do.call(rbind, dfs)
   
   # Wide or long data
   if ((is.data.frame(df_0) && nrow(df_0)) == FALSE) {
     if (format == "w"){
-      df_0 <- pivot_wider(df_0, names_from = "Region", values_from = "cases")
+      df_0 <- pivot_wider(df_0, names_from = "Region", values_from = name(df_0[-1]))
     }
     return(df_0)
   } else {
@@ -353,9 +373,8 @@ get.df2 <- function(date, type, countries, format, Curr_TSDATA) {
   }
 }
 
-
 ################################################################################
-############################### Initialise #####################################
+############################### Initials #######################################
 ################################################################################
 
 # Initial dataset
@@ -368,7 +387,14 @@ for(type in types){
 # Extract dates from the time series data
 dateOptions <- names(TSData[["deaths"]][-1])
 
+################################################################################
+############################### Constants ######################################
+################################################################################
+
 # Regions available
 all_regions <- TSData[["deaths"]]$Region
+
+# Todays population - assumed to be constant 
+today_pop <- get.population()
 
 ################################################################################
