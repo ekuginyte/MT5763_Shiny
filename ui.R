@@ -1,9 +1,6 @@
-# ui file for the Shiny app
-# Current date
-lastSessionStart <- as.Date(strftime(Sys.time(), "%Y/%m/%d"))
-
 ### UI
 ui <- fluidPage(
+  
 # Enable additional features
 shinyjs::useShinyjs(), 
   
@@ -73,7 +70,7 @@ shinyjs::useShinyjs(),
                # INPUT: Select countries
                selectInput(inputId = "data_countries",
                            label = "Countries",
-                           choices = unique(df_stats$Region),
+                           choices = all_regions,
                            multiple = TRUE,
                            selected = "Great Britain"),
                
@@ -120,17 +117,18 @@ shinyjs::useShinyjs(),
                # INPUT: countries to plot data from
                selectizeInput(inputId = "plot_countries",
                            label = "Countries (max 10)",
-                           choices = unique(df$Region),
+                           choices = all_regions,
                            multiple = TRUE,
                            selected = "UK",
                            options = list(maxItems = 10)
                            ),
                
-               # OUTPUT: Link to download plot shown as png
-               downloadLink('download_plot_data', 'Download Plot'),
-               
                # OUTPUT: Link to download plot dataset as csv
-               downloadLink('download_plot', 'Download Plot Data')
+               downloadLink('download_plot', 'Download Plot Data'),
+               
+               # OUTPUT: Link to download plot shown as png
+               downloadLink('download_plot_data', 'Download Plot')
+               
              ),
              # Main panel
              mainPanel(
