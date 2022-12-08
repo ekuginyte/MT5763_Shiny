@@ -563,3 +563,37 @@ get.df <- function(format, df_0, choices, countries){
   }
 }
 
+
+
+
+
+
+
+
+# If 1 input is selected
+if (length(type) == 1) {
+  # Extract data with user's choices
+  df_0 <- get.world.stats(type = type, date = date, df = df)
+  # Extract user's selected regions
+  df_0 <- df_0[df_0$Region %in% countries, ]
+  # If 2 inputs are selected
+} else if (length(type) == 2) {
+  df_0 <- get.world.stats(type = type[1], date = date, df = df)
+  df_0 <- df_0[df_0$Region %in% countries, ]
+  df_01 <- get.world.stats(type = type[2], date = date, df = df)
+  df_01 <- df_01[df_01$Region %in% countries, ]
+  df_0 <- rbind(df_0, df_01)
+  # If 3 inputs are selected
+} else if (length(type) == 3) {
+  df_0 <- get.world.stats(type = type[1], date = date, df = df)
+  df_0 <- df_0[df_0$Region %in% countries, ]
+  df_01 <- get.world.stats(type = type[2], date = date, df = df)
+  df_01 <- df_01[df_01$Region %in% countries, ]
+  df_02 <- get.world.stats(type = type[3], date = date, df = df)
+  df_02 <- df_02[df_02$Region %in% countries, ]
+  df_0 <- rbind(df_0, df_01, df_02)
+  # If nothing is selected
+} else {
+  df_0 <- df
+}
+
