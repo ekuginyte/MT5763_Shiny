@@ -23,7 +23,7 @@ server <- function(input, output) {
       # Extract all possible dates
       #dateOptions <- as.Date(dateOptions, "%m/%d/%y")
       showNotification("Data Refreshed")
-  })
+      })
   
   ### Map plot page
   # Plot the world map 
@@ -31,32 +31,32 @@ server <- function(input, output) {
     ts_df <- get.time.series.data(type = input$map_data_choice)
     ggiraph(code = print(get.world.map(type = input$map_data_choice, 
                                        date = input$plot_date, df = ts_df)))
-  })
+    })
   
   # Save Globe plot
-  #output$download_map_plot <- downloadHandler(
-  #    filename <- function() {
-  #      paste("Covid-19_map_", input$map_data_choice, "_", Sys.Date(), ".png", sep = "")
-  #    },
-  #    content <- function(file) {
-  #      ggsave(file)
-  #    }
-  #  )
+  output$download_map_plot <- downloadHandler(
+      filename <- function() {
+        paste("Covid-19_map_", input$map_data_choice, "_", Sys.Date(), ".png", sep = "")
+        },
+      content <- function(file) {
+        ggsave(world_map, file)
+        }
+      )
   
   # Save mapping data
   output$download_map_data <- downloadHandler(
     filename = function() {
       paste("Covid-19_data_", Sys.Date(), ".csv", sep = "")
-    },
+      },
     content = function(file) {
-      write.csv(df, file)
-    }
-  )
+      write.csv(ts_df, file)
+      }
+    )
   
   
   ### Data page
   dfInput <- reactive({
-    get.df2(date = input$plot_date, type = input$data_page_choice, df = df, 
+    get.df2(date = input$plot_date, type = input$data_page_choice, 
             countries = input$data_countries, format = input$data_format)})
   
   output$data_to_download <- renderDataTable(dfInput())
@@ -64,11 +64,11 @@ server <- function(input, output) {
   output$download_data <- downloadHandler(
     filename = function() {
       paste("Covid-19_data_", Sys.Date(),'.csv', sep = '')
-    },
+      },
     content = function(file) {
       write.csv(dfInput(), file)
-    }
-  )
+      }
+    )
   
   ### Plot page
   #plotdfInput <- reactive({
@@ -79,7 +79,7 @@ server <- function(input, output) {
   
   # Plot specified map
   output$stat_plot <- renderGirafe({
-    ggiraph(code = print(get.plot(plot_name = input$plot_type_choice, df = df,
+    ggiraph(code = print(get.plot(plot_name = input$plot_type_choice, 
                                   regions = input$plot_countries, 
                                   type = input$plot_data_choice,
                                   date = input$plot_date)))
@@ -92,7 +92,7 @@ server <- function(input, output) {
             Sys.Date(),".png", sep = "")
     },
     content = function(file) {
-      ggsave(file)
+      ggsave(file, plot = plotInput())
     }
   )
   
