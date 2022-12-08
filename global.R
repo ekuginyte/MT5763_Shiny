@@ -14,16 +14,10 @@ if (any(installed_packages == FALSE)) {
 
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
-library(shinythemes)
 
 # Current date
-lastSessionStart <- as.Date(strftime(Sys.time(), "%Y/%m/%d"))
-
 lastRefresh <- as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2
 lastRefresh <- format(lastRefresh, "%m/%d/%y") 
-
-
-
 
 
 # Function to scrape data from GitHub and wrangle
@@ -34,7 +28,7 @@ lastRefresh <- format(lastRefresh, "%m/%d/%y")
 #       * dates must be Date objects with format specified
 #   OUTPUT: 
 #     df - data.frame of covid time series data.
-get.time.series.data <- function(type = map_data_choice, 
+get.time.series.data <- function(type, 
                                  minDate = as.Date("1/22/20", format = "%m/%d/%y"), 
                                  maxDate = as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2, 
                                  countries = NA){
@@ -62,7 +56,7 @@ get.time.series.data <- function(type = map_data_choice,
     rename_at(vars(names(df[-1])), ~as.character(format(
       as.Date(names(df[-1]), format = "%m/%d/%y"), format = "%m/%d/%y"))) %>%
     # Select all the dates found above
-    select(all_of(dates)) %>%
+    dplyr::select(all_of(dates)) %>%
     # Combine any rows which have the same region
     summarise_all(funs(sum(na.omit(.))))
   
@@ -125,13 +119,11 @@ get.population <- function() {
 #    df - overall df which will be queried
 #  OUTPUT:
 #    plot_map - map plot of selected data.
-get.world.map <-  function(type = map_data_choice, 
-                             date =  as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2,
-                             df) {
+get.world.map <-  function(type, date, df) {
   
   # Get total cases from selected data type
   df <- df %>%
-    select(c("Region", format(date, format = "%m/%d/%y")))
+    dplyr::select(c("Region", format(date, format = "%m/%d/%y")))
   world_map <- map_data("world") %>%
     fortify()
   
@@ -188,7 +180,6 @@ get.world.map <-  function(type = map_data_choice,
 }
 
 
-
 # GitHub data stats function
 #  INPUT:
 #    user_input - selection of type of plot;
@@ -196,13 +187,14 @@ get.world.map <-  function(type = map_data_choice,
 #    df - overall df which will be queried
 #  OUTPUT:
 #    df_stats - map plot of selected data.
-get.world.stats <-  function(type = map_data_choice, 
+get.world.stats <-  function(type, 
                            date =  as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2,
                            df) {
   
+  df <- get.time.series.data(type, maxDate = date)
   # Get total cases from selected data type
   df <- df %>%
-    select(c("Region", format(date, format = "%m/%d/%y")))
+    dplyr::select(c("Region", format(date, format = "%m/%d/%y")))
   df_stats <- map_data("world") %>%
     fortify()
   
@@ -237,8 +229,7 @@ get.world.stats <-  function(type = map_data_choice,
 #   date - selection of max date.
 #  OUTPUT:
 #   df - data frame with selected variables only.
-get.df1 <- function(regions = plot_countries, type = plot_data_choice,
-                    date = plot_date, df) {
+get.df1 <- function(regions, type, date, df) {
   # Get data frame with selected data type 
   df <- get.world.stats(type = type, date = date, df = df)
   
@@ -256,24 +247,29 @@ get.df1 <- function(regions = plot_countries, type = plot_data_choice,
 #   plot_name - type of plot to produce,
 #  OUTPUTS:
 #   p - either bar or pie chart plot.
-get.plot <- function(plot_name, df) {
+get.plot <- function(plot_name, df, regions, type, date) {
   # Extract the selected data
-  df <- get.df1(regions = plot_countries, type = plot_data_choice,
-                date = plot_date, df = df)
-
+  df <- get.df1(regions = regions, type = type, date = date, df = df)
+  x_var <- as.list(df$Region)
+  x_var <- as.character(x_var)
+  y_var <- df[, 2]
+  y_var <- as.vector(unlist(y_var))
   # Bar plot
-  if (plotName == "vbar"){
-    p <- ggplot(data = df, aes(x = Region, y = cases), colour = Region) +
-      geom_col() + #ylab(plot_labels[unique(df$choice)]) +
+  if (plot_name == "vbar") {
+    p <- ggplot() +
+      geom_col(aes(x = x_var, y = y_var, fill = x_var)) + 
+      #ylab(plot_labels[unique(df$choice)]) +
       labs(y = "Cases relative to population, per million", 
-           x = "Regions") +
+           x = "Regions",
+           fill = "Countries") +
       theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1)) +
       theme_minimal()
     
   # Pie chart  
-  } else if (plotName == "pie"){
-    p <- ggplot(data = df, aes(x = "", y = cases, fill = Region)) +
-      geom_bar(stat = "identity", width = 1) +
+  } else if (plotName == "pie") {
+    p <- ggplot() +
+      geom_bar(aes(x = "", y = y_var, fill = x_var), stat = "identity", width = 1) +
+      labs(fill = "Countries") +
       coord_polar("y", start = 0) +
       theme_void()
     
@@ -287,8 +283,6 @@ get.plot <- function(plot_name, df) {
 }
 
 
-# EK: THIS ONE IS MESSY, i wonder if your get.df could still work for the JHU dataset
-# i saved it on the superseded file!!!!!
 # Function to return the selected data frame, Data Page
 #   INPUTS:
 #     date - user selects date on page 1,
@@ -296,33 +290,26 @@ get.plot <- function(plot_name, df) {
 #     df - original data frame that has been scraped,
 #     countries - user selects countries to look at,
 #     format - user selects format of data (long or wide).
-get.df2 <- function(date = plot_date, type = data_page_choice, df = df, 
-                    countries = data_countries, format = data_format) {
-  
-  # If 1 input is selected
-  if (length(type) == 1) {
-    # Extract data with user's choices
-    df_0 <- get.world.stats(type = type, date = date, df = df)
-    # Extract user's selected regions
-    df_0 <- df_0[df_0$Region %in% countries, ]
-    # If 2 inputs are selected
-  } else if (length(type) == 2) {
-      df_0 <- get.world.stats(type = type[1], date = date, df = df)
-      df_0 <- df_0[df_0$Region %in% countries, ]
-      df_01 <- get.world.stats(type = type[2], date = date, df = df)
-      df_01 <- df_01[df_01$Region %in% countries, ]
-      df_0 <- rbind(df_0, df_01)
-      # If 3 inputs are selected
-  } else if (length(type) == 3) {
-      df_0 <- get.world.stats(type = type[1], date = date, df = df)
-      df_0 <- df_0[df_0$Region %in% countries, ]
-      df_01 <- get.world.stats(type = type[2], date = date, df = df)
-      df_01 <- df_01[df_01$Region %in% countries, ]
-      df_02 <- get.world.stats(type = type[3], date = date, df = df)
-      df_02 <- df_02[df_02$Region %in% countries, ]
-      df_0 <- rbind(df_0, df_01, df_02)
-      # If nothing is selected
-  } else {
+#   OUTPUTS:
+#     df_0 - returns data frame of selected countries in long format,
+#     df_1 - returns data frame of selected countries in wide format.
+get.df2 <- function(date, type, df, countries, format) {
+  # Preset an empty data frame
+  df_0 <- data.frame(NA)
+  # For however many types selected
+  if (length(type) != 0) {
+    for (i in 1:seq(type)) {
+      # Extract data with user's choices
+      df_00 <- get.world.stats(type = i, date = date, df = df)
+      # Extract user's selected regions
+      df_00 <- df_0[df_0$Region %in% countries, ]
+      # Bind the data frame
+      df_0 <- cbind(df_0, df_00)
+      # Drop the row with NA values
+      df_0 <- drop_na(df_0)
+    }
+  }
+  else {
     df_0 <- df
   }
   # Wide or long data
@@ -338,16 +325,15 @@ get.df2 <- function(date = plot_date, type = data_page_choice, df = df,
 
 
 
-
 ### Initialise
 
 # Initial dataset
-#map_data_choice <- "confirmed"
-TSData <- get.time.series.data()
+TSData <- get.time.series.data(type = "confirmed")
 
 # Extract dates from the time series data
 dateOptions <- names(TSData[-1])
 
-# Store statistics to get the data frame to plot
-df_stats <- get.df1(regions = plot_countries, type = plot_type_choice,
-                    date = plot_date, df)
+# Regions available
+all_regions <- TSData$Region
+
+
