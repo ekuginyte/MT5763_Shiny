@@ -3,5 +3,6 @@
 08/12
 - Recovered data has zeros only??? could we substitute with a different link?
 - Display number of total cases (additional feature)
-- Data and plots pages still not working
+- Data page still not working
+- Download button on the map page is working fine, however not on the other pages
 - Unable to stack two download buttons
