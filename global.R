@@ -1,9 +1,10 @@
 ### Functions for Server and UI files
-# Server file for the Shiny app
+
+# Packages
 packages <- c("shiny", "tidyverse", "robotstxt", "rvest", "maps", "ggmap", 
               "ggplot2", "ggiraph", "RColorBrewer", "reshape2", "shinyjs", 
               "shinythemes", "shinydashboard", "sf", "rgdal", "leaflet", 
-              "shinyWidgets", "mgsub", "data.table")
+              "shinyWidgets", "mgsub", "data.table", "lubridate")
 
 # Install packages required
 installed_packages <- packages %in% rownames(installed.packages())
@@ -51,7 +52,8 @@ get.time.series.data <- function(type,
     rename("Region" = "Country/Region") %>%
     # Group by region (normally country)
     group_by(Region)
-  df <- df %>% 
+ 
+   df <- df %>% 
     # Rename all dates to be in a nicer format
     rename_at(vars(names(df[-1])), ~as.character(format(
       as.Date(names(df[-1]), format = "%m/%d/%y"), format = "%m/%d/%y"))) %>%
@@ -80,10 +82,11 @@ get.time.series.data <- function(type,
 
 
 
-# Function to extract world population data
+# Function to extract world population data from worldometers.info
 #  OUTPUT:
 #     pd - data frame with world population column.
 get.population <- function() {
+  
   # Download the whole web page of population
   html_page <- read_html("https://www.worldometers.info/world-population/population-by-country/") 
   
@@ -107,6 +110,7 @@ get.population <- function() {
     pd$Country..or.dependency.[pd$Country..or.dependency. == 
                                  wrong_titles[i]] <- new_titles[i]
   }
+  # Return data frame with populations
   return(pd)
 }
 
@@ -184,37 +188,27 @@ get.world.map <-  function(type, date, df) {
 #  INPUT:
 #    user_input - selection of type of plot;
 #    date - selection of date.
-#    df - overall df which will be queried
 #  OUTPUT:
 #    df_stats - map plot of selected data.
-get.world.stats <-  function(type, 
-                           date =  as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2,
-                           df) {
+get.world.stats <-  function(type, date) {
   
-  df <- get.time.series.data(type, maxDate = date)
+  # Extract the time series data
+  df_stats <- get.time.series.data(type, maxDate = date)
+  
   # Get total cases from selected data type
-  df <- df %>%
+  df_stats <- df_stats %>%
     dplyr::select(c("Region", format(date, format = "%m/%d/%y")))
-  df_stats <- map_data("world") %>%
-    fortify()
-  
-  # Rename column name to match with covid data frame
-  names(df_stats)[names(df_stats) == "region"] <- "Region"
-  
-  # Add the cases to the world map data frame
-  df_stats["cases"] <- df[match(df_stats$Region, df$Region), 
-                          format(date, format = "%m/%d/%y")]
-  
+
   # Add population to the data frame
   pd <- get.population()
   pd$Population..2020. <- as.numeric(gsub(",", "", pd$Population..2020.))
-  # Combine
-  df_stats["population"] <- pd$Population..2020.[
-    match(df_stats$Region, pd$Country..or.dependency.)] 
+  
+  # Combine the population data with the covid cases data
+  df_stats["population"] <- pd$Population..2020.[match(df_stats$Region, pd$Country..or.dependency.)] 
   df_stats$population <- as.numeric(gsub(",", "", df_stats$population))
   
   # Cases relative to population
-  df_stats$cases <- round(df_stats$cases / (df_stats$population / 1000000), 2)
+  df_stats[[2]] <- round(df_stats[[2]] / (df_stats$population / 1000000), 2)
   
   # Return the plot
   return(df_stats)
@@ -229,9 +223,10 @@ get.world.stats <-  function(type,
 #   date - selection of max date.
 #  OUTPUT:
 #   df - data frame with selected variables only.
-get.df1 <- function(regions, type, date, df) {
+get.df1 <- function(regions, type, date) {
+  
   # Get data frame with selected data type 
-  df <- get.world.stats(type = type, date = date, df = df)
+  df <- get.world.stats(type = type, date = date)
   
   # Produce data frame only with countries selected
   df <- df[df$Region %in% regions, ]
@@ -245,15 +240,26 @@ get.df1 <- function(regions, type, date, df) {
 # Plots function for plot page
 #  INPUTS:
 #   plot_name - type of plot to produce,
+#   regions - user's selected regions,
+#   type - user's selected bar or pie chart,
+#   date - user's selected max date.
 #  OUTPUTS:
 #   p - either bar or pie chart plot.
-get.plot <- function(plot_name, df, regions, type, date) {
+get.plot <- function(plot_name, regions, type, date) {
+  
+  # Make sure the input is in date format
+  #date <- format(mdy(date), "%m/%d/%y")
+  date <- as.Date(date, "%m/%d/%y")
+  
   # Extract the selected data
-  df <- get.df1(regions = regions, type = type, date = date, df = df)
+  df <- get.df1(regions = regions, type = type, date = date)
+  
+  # Extract variables for ggplot
   x_var <- as.list(df$Region)
   x_var <- as.character(x_var)
   y_var <- df[, 2]
   y_var <- as.vector(unlist(y_var))
+  
   # Bar plot
   if (plot_name == "vbar") {
     p <- ggplot() +
@@ -266,7 +272,7 @@ get.plot <- function(plot_name, df, regions, type, date) {
       theme_minimal()
     
   # Pie chart  
-  } else if (plotName == "pie") {
+  } else if (plot_name == "pie") {
     p <- ggplot() +
       geom_bar(aes(x = "", y = y_var, fill = x_var), stat = "identity", width = 1) +
       labs(fill = "Countries") +
@@ -293,18 +299,24 @@ get.plot <- function(plot_name, df, regions, type, date) {
 #   OUTPUTS:
 #     df_0 - returns data frame of selected countries in long format,
 #     df_1 - returns data frame of selected countries in wide format.
-get.df2 <- function(date, type, df, countries, format) {
+get.df2 <- function(date, type, countries, format) {
+  
   # Preset an empty data frame
   df_0 <- data.frame(NA)
+  
   # For however many types selected
   if (length(type) != 0) {
     for (i in 1:seq(type)) {
+      
       # Extract data with user's choices
-      df_00 <- get.world.stats(type = i, date = date, df = df)
+      df_00 <- get.world.stats(type = i, date = date)
+      
       # Extract user's selected regions
-      df_00 <- df_0[df_0$Region %in% countries, ]
+      df_00 <- df_00[df_00$Region %in% countries, ]
+      
       # Bind the data frame
       df_0 <- cbind(df_0, df_00)
+      
       # Drop the row with NA values
       df_0 <- drop_na(df_0)
     }
