@@ -134,7 +134,7 @@ shinyjs::useShinyjs(),
              mainPanel(
                
                # OUTPUT: Plot the map from above query
-               girafeOutput("plot")
+               girafeOutput("stat_plot")
              )
            )
           
