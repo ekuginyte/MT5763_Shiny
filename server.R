@@ -1,36 +1,32 @@
 #### Server
 server <- function(input, output) {
-
- observeEvent(
-   
-   # Refresh when clicked
-    input$refresh, {
-      
-      # Initial dataset
-      #map_data_choice <- "confirmed"
-      
-      # Extract all possible values for dates
-      #TSData <- get.time.series.data(type = input$map_data_choice)
+  
+  # Keeps track of when to automatically refresh
+  auto_refresh <- reactiveTimer(3600000) # 1hr
+  
+  RefreshDetect <- reactive({
+    list(input$refresh)
+  })
+  
+  observeEvent(
+     RefreshDetect(), {
+      auto_refresh()
+      TSData <- get.time.series.data(type = input$map_data_choice)
       # Extract dates from the time series data
-      #dateOptions <- names(TSData[-1]) 
-      #dateOptions <- as.Date(strftime(dateOptions, "%m/%d/%y"))
-    
-      # Refresh every hour
-      #invalidateLater(3600000)
+      dateOptions <- names(TSData[-1]) 
+      dateOptions <- as.Date(strftime(dateOptions, "%m/%d/%y"))
+      maxDate <- tail(dateOptions, n = 1)
       # Save today's date
-      lastRefresh <- as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2
-      #lastRefresh <- format(lastRefresh, "%m/%d/%y") 
+      lastRefresh <- Sys.time()
       # Extract all possible dates
-      #dateOptions <- as.Date(dateOptions, "%m/%d/%y")
       showNotification("Data Refreshed")
       })
   
   ### Map plot page
   # Plot the world map 
   output$world_map <- renderGirafe({
-    ts_df <- get.time.series.data(type = input$map_data_choice)
     ggiraph(code = print(get.world.map(type = input$map_data_choice, 
-                                       date = input$plot_date, df = ts_df)))
+                                       date = input$plot_date, df = TSData)))
     })
   
   # Save Globe plot
@@ -71,11 +67,6 @@ server <- function(input, output) {
     )
   
   ### Plot page
-  #plotdfInput <- reactive({
-  #  get.df1(regions = input$plot_countries, type = input$plot_data_choice,
-  #          date = input$plot_date, df = df)
-  #})
-    #get.df("l", dat, input$map_data_choice, input$plot_countries)})
   
   # Plot specified map
   output$stat_plot <- renderGirafe({

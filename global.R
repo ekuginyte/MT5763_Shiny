@@ -16,10 +16,9 @@ if (any(installed_packages == FALSE)) {
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
 
-# Current date
+# Set a safe maximum date
 lastRefresh <- as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2
 lastRefresh <- format(lastRefresh, "%m/%d/%y") 
-
 
 # Function to scrape data from GitHub and wrangle
 #   INPUT:
@@ -114,8 +113,6 @@ get.population <- function() {
   return(pd)
 }
 
-
-
 # GitHub data map plotting function
 #  INPUT:
 #    user_input - selection of type of plot;
@@ -127,7 +124,9 @@ get.world.map <-  function(type, date, df) {
   
   # Get total cases from selected data type
   df <- df %>%
-    dplyr::select(c("Region", format(date, format = "%m/%d/%y")))
+    select(c("Region", format(date, format = "%m/%d/%y")))
+  
+  # Get world map geometry
   world_map <- map_data("world") %>%
     fortify()
   
@@ -190,9 +189,9 @@ get.world.map <-  function(type, date, df) {
 #    date - selection of date.
 #  OUTPUT:
 #    df_stats - map plot of selected data.
-get.world.stats <-  function(type, date) {
+get.world.stats <-  function(type, date, df_stats = NULL) {
   
-  # Extract the time series data
+  # Extract the time series data if none passedhat
   df_stats <- get.time.series.data(type, maxDate = date)
   
   # Get total cases from selected data type
