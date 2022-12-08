@@ -1,7 +1,7 @@
 ## To do
 
-07/12
-- Make sure the user can select confirmed/death/recovered data
-- Display number of total cases
+08/12
+- Recovered data has zeros only??? could we substitute with a different link?
+- Display number of total cases (additional feature)
 - Data and plots pages still not working
 - Unable to stack two download buttons
