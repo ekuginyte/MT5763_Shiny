@@ -1,4 +1,4 @@
-### Server
+#### Server
 server <- function(input, output) {
 
  observeEvent(

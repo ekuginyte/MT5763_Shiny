@@ -1,4 +1,4 @@
-### UI
+#### UI
 ui <- fluidPage(
   
 # Enable additional features

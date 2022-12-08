@@ -1,4 +1,4 @@
-### Functions for Server and UI files
+#### Functions for Server and UI files
 
 # Packages
 packages <- c("shiny", "tidyverse", "robotstxt", "rvest", "maps", "ggmap", 
@@ -303,6 +303,9 @@ get.df2 <- function(date, type, countries, format) {
   
   # Preset an empty data frame
   df_0 <- data.frame(NA)
+  
+  # Make sure it's a date input
+  date <- as.Date(date, "%m/%d/%y")
   
   # For however many types selected
   if (length(type) != 0) {
