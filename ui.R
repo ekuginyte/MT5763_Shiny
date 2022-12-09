@@ -30,11 +30,15 @@ shinyjs::useShinyjs(),
                              "Recoveries per million of population" = "recovered"),
                            selected = "confirmed"),
               
+              fluidRow(1, 
               # OUTPUT: Download the map
-              downloadLink('download_map_plot', 'Download Map'),
-              
+              downloadLink('download_map_plot', 'Download Globe Map')
+                       ),
+
+              fluidRow(2,
               # OUTPUT: Download the map data
-              downloadLink('download_map_data', 'Download Map Data')
+              downloadLink('download_map_data', 'Download Globe Map Data')
+              )
       ),
       
       mainPanel(
@@ -76,9 +80,10 @@ shinyjs::useShinyjs(),
                             label = "Format of data",
                             choices = list("Long" = "l",
                                             "Wide" = "w")),
-               
+               fluidRow(1,
                # OUTPUT: Download the current data frame from query
                downloadLink('download_data', 'Download Data')
+               )
              ),
              
            mainPanel(

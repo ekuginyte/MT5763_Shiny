@@ -359,9 +359,13 @@ get.df2 <- function(date, data_type, countries, format, Curr_TSDATA) {
     df_0 <- do.call(rbind, dfs)
   
   # Wide or long data
-  if ((is.data.frame(df_0) && nrow(df_0)) == FALSE) {
+  if ((is.data.frame(df_0) && nrow(df_0)) != FALSE) {
     if (format == "w"){
-      df_0 <- pivot_wider(df_0, names_from = "Region", values_from = name(df_0[-1]))
+     # df_0 <- pivot_wider(df_0, names_from = Type, values_from = format(as.Date(date, format = "%m/%d/%y"), "%m/%d/%y"))
+      
+      df_0 <- df_0 %>%
+        pivot_wider(names_from = Type, values_from = format(as.Date(date, format = "%m/%d/%y"), "%m/%d/%y")) %>%
+        mutate(Date = date)
     }
     return(df_0)
   } else {
@@ -389,6 +393,10 @@ TSData <- scrape.all.data()
 
 # Extract dates from the time series data
 dateOptions <- names(TSData[["deaths"]][-1])
+
+# When data was last fetched
+lastRefresh <- paste("Last updated: ", Sys.time())
+
 
 ################################################################################
 ############################### Constants ######################################

@@ -6,6 +6,10 @@ server <- function(input, output) {
     list(input$refresh, invalidateLater(3600000))
   })
   
+  last_refresh <- reactive({
+    paste("Last updated: ", Sys.time())
+  })
+  
   # Update data and settings when RefreshDetect
   observeEvent(
      RefreshDetect(), {
@@ -15,12 +19,12 @@ server <- function(input, output) {
       maxDate <- tail(dateOptions, n = 1)
       all_regions <- TSData[["deaths"]]$Region
       # Save last refresh time
-      lastRefresh <- paste("Last updated: ", Sys.time())
+      output$last_refresh <- renderText({last_refresh()})
       # Extract all possible dates
       showNotification("Data Refreshed")
-      })
+      }, ignoreInit = T)
   
-  output$last_refresh <- renderText({lastRefresh})
+  #output$last_refresh <- renderText({lastRefresh})
   
   ##############################################################################
   ############################# Map plot page ##################################
