@@ -223,27 +223,6 @@ get.world.stats <-  function(date, df_stats = data.table(), pd = today_pop) {
 
 ################################################################################
 
-# Function to get a data frame with choices for page 3
-#  INPUTS:
-#   regions - user's selection,
-#   type - selection of data type,
-#   date - selection of max date.
-#  OUTPUT:
-#   df - data frame with selected variables only.
-#get.df1 <- function(regions, type, date, Curr_TSDATA) {
-  
-  # Get data frame with selected data type 
-  #df <- get.world.stats(date = date, df_stats = Curr_TSDATA[[type]])
-  
-  # Produce data frame only with countries selected
-  #df <- df[df$Region %in% regions, ]
-  
-  # Return the data frame
-  #return(df)
-#}
-
-################################################################################
-
 ### get.plot - Plots function for plot page
 #  INPUTS:
 #   plot_name - type of plot to produce,
@@ -255,7 +234,6 @@ get.world.stats <-  function(date, df_stats = data.table(), pd = today_pop) {
 get.plot <- function(plot_name, regions, type, date, Curr_TSDATA) {
   
   # Make sure the input is in date format
-  #date <- format(mdy(date), "%m/%d/%y")
   date <- as.Date(date, "%m/%d/%y")
   
   # Extract the selected data
@@ -358,30 +336,34 @@ get.df2 <- function(date, data_type, countries, format, Curr_TSDATA) {
     # Bind dataframes
     df_0 <- do.call(rbind, dfs)
   
-  # Wide or long data
-  if ((is.data.frame(df_0) && nrow(df_0)) != FALSE) {
+    # Wide or long data (default: long)
+    # Pivot wide
     if (format == "w"){
-     # df_0 <- pivot_wider(df_0, names_from = Type, values_from = format(as.Date(date, format = "%m/%d/%y"), "%m/%d/%y"))
-      
       df_0 <- df_0 %>%
         pivot_wider(names_from = Type, values_from = format(as.Date(date, format = "%m/%d/%y"), "%m/%d/%y")) %>%
         mutate(Date = date)
     }
     return(df_0)
-  } else {
-    return(df_0)
   }
-}
 ################################################################################
 
 ### scrape.all.data - scrapes all the timeseries data available and returns the
-# multiple dataframes
+# multiple dataframes in a list
+# OUTPUTS:
+#   TSDATA - a list of dataframes containing timeseries data
+
 scrape.all.data <- function(){
+  # Possible types of data to chose
   types = c("confirmed", "deaths", "recovered")
+  
+  # List to store dataframes in
   TSData <- vector('list', 3)
+  
+  # Loop through all types
   for(type in types){
     TSData[[type]] = get.time.series.data(type = type)
   }
+  # Return list of dataframes
   return(TSData)
 }
 

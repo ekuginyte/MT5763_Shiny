@@ -13,27 +13,27 @@ server <- function(input, output, session) {
   # Update data and settings when RefreshDetect
   observeEvent(
      RefreshDetect(), {
+      # Scrape a new set of data
       TSData <- scrape.all.data()
       # Extract dates from the time series data
       dateOptions <- names(TSData[["confirmed"]][-1])
+      # Find the max possible date to chose
       maxDate <- tail(dateOptions, n = 1)
+      # See if any additional regions to include in the queries/plots
       all_regions <- TSData[["deaths"]]$Region
-      # Save last refresh time
+      # Save current time as last refresh time
       output$last_refresh <- renderText({paste("Last updated: ", Sys.time())})
-      #output$max_date <-renderText({paste("*Most recent: ", maxDate)})
+      # Update the slider with new available dates
       updateSliderTextInput(session,
                           inputId = "plot_date", 
                             choices = dateOptions,
                           label = paste("Date (most recent: ", maxDate,"): "))
-      
+      # Display a refresh update
       showNotification("Data Refreshed")
       }, ignoreInit = T)
   
   # Initial refresh date taken to be boot time
   output$last_refresh <- isolate(renderText({lastRefresh}))
-  
-  # Initial max date on boot
-  #output$max_date <- isolate(renderText({paste("(Most recent: ", maxDate)}))
   
   ##############################################################################
   ############################# Map plot page ##################################
@@ -78,8 +78,10 @@ server <- function(input, output, session) {
             format = input$data_format,
             Curr_TSDATA = TSData)})
   
+  # Render queried data
   output$data_to_download <- renderDataTable(dfInput())
   
+  # Download the queried data
   output$download_data <- downloadHandler(
     filename = function() {
       paste("Covid-19_data_", Sys.Date(),'.csv', sep = '')

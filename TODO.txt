@@ -5,9 +5,14 @@
 
 09/12
 
-- population is fetched every time, talk about assumption of todays is valid for 2 years ago/ relative
-- Annimation works okay for simple graphs not so much for the gloropleth
-- Update the selectors with new data
 - Add summaryu to current data page
-- Add multiple dates in ts query, maybe remove pivot
-- Change get.plot to use get.df2
+
+#### NOTES
+- Assumed population is constant from when app booted, valid if not run for too long
+- Assuming that each dataset has the same dates for each time series, all dates are found from one
+- Countries remain constant from when booted
+- Could improve by adding requirement checks and check stuff is available 
+- Data is availble from 3 days ago on the website (taken to be safe selected in the scroller)
+- Could add a condition to check if new data is available first
+- Could improve efficieny of get.df2 by not fetch df twice
+- On Data map whole dataset of that type download for the world, NOT TIME DISPLAYED

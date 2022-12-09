@@ -5,7 +5,7 @@ ui <- fluidPage(
 shinyjs::useShinyjs(), 
 
   # Navbar structure for ui
-  navbarPage("Covid-19 Tracker", theme = shinytheme("paper"),     
+  navbarPage("Covid-19 Tracker", theme = shinytheme("yeti"),     
   ################################################################################
   ### Map data page
   tabPanel("Data Map", icon = icon("globe"),
@@ -21,8 +21,6 @@ shinyjs::useShinyjs(),
                                #animate = animationOptions(interval = 300, loop = FALSE)
                ),
                
-               #textOutput("max_date"),
-                          
               # INPUT: Type of covid data to display
                selectInput(inputId = "map_data_choice",
                            label = "Data to display:",
@@ -128,10 +126,14 @@ shinyjs::useShinyjs(),
                            ),
                
                # OUTPUT: Link to download plot dataset as csv
-               downloadLink('download_plot', 'Download Plot'),
+               fluidRow(
+               downloadLink('download_plot', 'Download Plot')
+               ),
                
                # OUTPUT: Link to download plot shown as png
+               fluidRow(
                downloadLink('download_plot_data', 'Download Plot Data')
+               )
                
              ),
              # Main panel
@@ -160,3 +162,4 @@ shinyjs::useShinyjs(),
 
 )
 ))
+################################################################################
