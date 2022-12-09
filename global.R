@@ -6,7 +6,7 @@
 packages <- c("shiny", "tidyverse", "robotstxt", "rvest", "maps", "ggmap", 
               "ggplot2", "ggiraph", "RColorBrewer", "reshape2", "shinyjs", 
               "shinythemes", "shinydashboard", "sf", "rgdal", "leaflet", 
-              "shinyWidgets", "mgsub", "data.table", "lubridate")
+              "shinyWidgets", "mgsub", "data.table", "lubridate", "ggpattern")
 
 # Install packages required
 installed_packages <- packages %in% rownames(installed.packages())
@@ -249,21 +249,35 @@ get.plot <- function(plot_name, regions, type, date, Curr_TSDATA) {
   # Bar plot
   if (plot_name == "vbar") {
     p <- ggplot() +
-      geom_col(aes(x = x_var, y = y_var, fill = x_var)) + 
-      #ylab(plot_labels[unique(df$choice)]) +
-      labs(y = "Cases relative to population, per million", 
-           x = "Regions",
-           fill = "Countries") +
-      theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1)) +
-      theme_minimal()
+      geom_col_pattern(aes(x = x_var, y = y_var, fill = x_var, pattern = x_var), 
+                       alpha = 0.8,
+                       pattern_fill = "white",
+                       pattern_colour = "white",
+                       pattern_alpha = 1,
+                       pattern_angle = 45,
+                       pattern_density = 0.02,
+                       pattern_spacing = 0.03,
+                       pattern_key_scale_factor = 1) + 
+      labs(y = "Cases relative to population per million", 
+           x = "Regions") +
+      theme_minimal() +
+      scale_fill_brewer(palette = "YlOrRd") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 0.75), 
+            legend.position = "none")
     
   # Pie chart  
   } else if (plot_name == "pie") {
+    # Plot pie 
     p <- ggplot() +
-      geom_bar(aes(x = "", y = y_var, fill = x_var), stat = "identity", width = 1) +
-      labs(fill = "Countries") +
+      geom_bar(aes(x = "", y = y_var, fill = x_var), alpha = 0.8, 
+                stat = "identity", width = 1) +
       coord_polar("y", start = 0) +
-      theme_void()
+      theme_void() +
+      labs(fill = "Countries") +
+      #geom_text(aes(x = 1.7, y = y_var, label = df$Percentages), 
+      #          colour = "grey25",
+      #          fontface = "bold") +
+      scale_fill_brewer(palette = "YlOrRd")
     
   # Else plot empty  
   } else{

@@ -5,10 +5,10 @@ account: ekuginyte
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 7842587
-bundleId: 6607641
+bundleId: 6616270
 url: https://ekuginyte.shinyapps.io/Moray_Covid-19_Tracker/
-when: 1670455968.4857
-lastSyncTime: 1670455968.48572
+when: 1670601556.54071
+lastSyncTime: 1670601556.54073
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .RData|DESCRIPTION|global.R.save|map.jpg|REGIONS TO MAP.txt|superseded.R|TODO.txt
+ignoredFiles: .RData|DESCRIPTION|GitHub_scraper_exploration.R|global.R.save|map.jpg|plot improvements.R|REGIONS TO MAP.txt|superseded.R|TODO.txt

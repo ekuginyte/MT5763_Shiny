@@ -18,7 +18,7 @@ shinyjs::useShinyjs(),
                                selected = format(as.Date(
                                strftime(Sys.time(), "%Y/%m/%d"), ) - 3, "%m/%d/%y")# -3 due to local timezone issues
                                #grid = FALSE,
-                               #animate = animationOptions(interval = 300, loop = FALSE)
+                               animate = animationOptions(interval = 300, loop = FALSE)
                ),
                
               # INPUT: Type of covid data to display

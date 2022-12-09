@@ -3,13 +3,13 @@
 
 #### Introduction
 
-This project scrapes time series data on Covid-19, including the total number of confirmed, death, and recovered cases since the virus outbreak began (supposedly) on January 1, 2021. The data is scraped from a GitHub repository where the information is updated daily. The most recent data available is from two days ago. The data is operated by Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE).^[Dong E, Du H, Gardner L. 2022] Population data extracted from the worldometers.info.
+This project scrapes time series data on Covid-19, including the total number of confirmed, death, and recovered cases since the virus outbreak began (supposedly) on January 1, 2021. The data is scraped from a GitHub repository where the information is updated daily. The most recent data available is from two days ago. The data is operated by Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE). Population data extracted from the worldometers.info.
 
 To note, the dates are displayed in an American month/day/year format. 
 
 #### Data Map
 
-The goal of this app is to display the relative to population numbers (per million) of cases over time, and the map makes it easy to compare how each country is dealing with the outbreak. Mouse hovering over a country will display the selected statistic. Countries with no data recorded by the JHU are filled with grey.
+The goal of this app is to display the relative to population numbers (per million) of cases over time, and the map makes it easy to compare how each country is dealing with the outbreak. Mouse hovering over a country will display the selected statistic. Countries with no data recorded by the JHU are filled with grey. Date factor for all the pages has to be set here. Animation of the date factor works across all pages.
 
 Download buttons allow to download both the currently displayed map and the data set.
 
