@@ -5,7 +5,7 @@
 
 This project scrapes time series data on Covid-19, including the total number of confirmed, death, and recovered cases since the virus outbreak began (supposedly) on January 1, 2021. The data is scraped from a GitHub repository where the information is updated daily. The most recent data available is from two days ago. The data is operated by Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE). Population data extracted from the worldometers.info.
 
-To note, the dates are displayed in an American month/day/year format. 
+To note: the dates are displayed in an American month/day/year format; the variable "Recoveries" have stopped being recorded in Summer 2021.
 
 #### Data Map
 
