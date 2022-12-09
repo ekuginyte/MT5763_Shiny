@@ -385,15 +385,10 @@ scrape.all.data <- function(){
 ################################################################################
 
 # Initial dataset
-#types = c("confirmed", "deaths", "recovered")
-#TSData <- vector('list', 3)
-#for(type in types){
-#  TSData[[type]] = get.time.series.data(type = type)
-#}
-#TSData <- scrape.all.data()
+TSData <- scrape.all.data()
 
 # Extract dates from the time series data
-#dateOptions <- names(TSData[["deaths"]][-1])
+dateOptions <- names(TSData[["deaths"]][-1])
 
 ################################################################################
 ############################### Constants ######################################
