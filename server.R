@@ -1,13 +1,13 @@
 #### Server
-server <- function(input, output) {
+server <- function(input, output, session) {
   
-  # tracks when to refresh. Either time or button
+  ##############################################################################
+  ############################ Refresh Items ###################################
+  ##############################################################################
+  
+  # tracks when to refresh. Either time limit of 1hr or button
   RefreshDetect <- reactive({
     list(input$refresh, invalidateLater(3600000))
-  })
-  
-  last_refresh <- reactive({
-    paste("Last updated: ", Sys.time())
   })
   
   # Update data and settings when RefreshDetect
@@ -19,12 +19,21 @@ server <- function(input, output) {
       maxDate <- tail(dateOptions, n = 1)
       all_regions <- TSData[["deaths"]]$Region
       # Save last refresh time
-      output$last_refresh <- renderText({last_refresh()})
-      # Extract all possible dates
+      output$last_refresh <- renderText({paste("Last updated: ", Sys.time())})
+      #output$max_date <-renderText({paste("*Most recent: ", maxDate)})
+      updateSliderTextInput(session,
+                          inputId = "plot_date", 
+                            choices = dateOptions,
+                          label = paste("Date (most recent: ", maxDate,"): "))
+      
       showNotification("Data Refreshed")
       }, ignoreInit = T)
   
-  #output$last_refresh <- renderText({lastRefresh})
+  # Initial refresh date taken to be boot time
+  output$last_refresh <- isolate(renderText({lastRefresh}))
+  
+  # Initial max date on boot
+  #output$max_date <- isolate(renderText({paste("(Most recent: ", maxDate)}))
   
   ##############################################################################
   ############################# Map plot page ##################################
@@ -120,4 +129,4 @@ server <- function(input, output) {
   )
   
 }
-
+##############################################################################

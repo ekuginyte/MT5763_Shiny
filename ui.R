@@ -13,13 +13,15 @@ shinyjs::useShinyjs(),
              sidebarPanel(
                # INPUT: User selects the date
                sliderTextInput("plot_date",
-                               label = "Date:",
+                               label = paste("Date (most recent: ", maxDate,"): "),
                                choices = dateOptions,
                                selected = format(as.Date(
-                               strftime(Sys.time(), "%Y/%m/%d"), ) - 3, "%m/%d/%y"),# -3 due to local timezone issues
-                               grid = FALSE,
-                               animate = animationOptions(interval = 300, loop = FALSE)
+                               strftime(Sys.time(), "%Y/%m/%d"), ) - 3, "%m/%d/%y")# -3 due to local timezone issues
+                               #grid = FALSE,
+                               #animate = animationOptions(interval = 300, loop = FALSE)
                ),
+               
+               #textOutput("max_date"),
                           
               # INPUT: Type of covid data to display
                selectInput(inputId = "map_data_choice",
@@ -30,12 +32,12 @@ shinyjs::useShinyjs(),
                              "Recoveries per million of population" = "recovered"),
                            selected = "confirmed"),
               
-              fluidRow(1, 
+              fluidRow( 
               # OUTPUT: Download the map
               downloadLink('download_map_plot', 'Download Globe Map')
                        ),
 
-              fluidRow(2,
+              fluidRow(
               # OUTPUT: Download the map data
               downloadLink('download_map_data', 'Download Globe Map Data')
               )
@@ -80,7 +82,7 @@ shinyjs::useShinyjs(),
                             label = "Format of data",
                             choices = list("Long" = "l",
                                             "Wide" = "w")),
-               fluidRow(1,
+               fluidRow(
                # OUTPUT: Download the current data frame from query
                downloadLink('download_data', 'Download Data')
                )
@@ -103,6 +105,7 @@ shinyjs::useShinyjs(),
                # INPUT: data to display
                selectInput(inputId = "plot_data_choice",
                            label = "Data to display:",
+               
                            choices = list(
                              "Confirmed cases per million of population" = "confirmed",
                              "Deaths per million of population" = "deaths",
@@ -115,7 +118,6 @@ shinyjs::useShinyjs(),
                             "Vertical Bar Chart" = "vbar",
                             "Pie Chart" = "pie"),
                            selected = "vbar"),
-               
                # INPUT: countries to plot data from
                selectizeInput(inputId = "plot_countries",
                            label = "Countries (max 10)",

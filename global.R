@@ -373,8 +373,9 @@ get.df2 <- function(date, data_type, countries, format, Curr_TSDATA) {
   }
 }
 ################################################################################
-### scrape.all.data
 
+### scrape.all.data - scrapes all the timeseries data available and returns the
+# multiple dataframes
 scrape.all.data <- function(){
   types = c("confirmed", "deaths", "recovered")
   TSData <- vector('list', 3)
@@ -393,8 +394,9 @@ TSData <- scrape.all.data()
 
 # Extract dates from the time series data
 dateOptions <- names(TSData[["deaths"]][-1])
+maxDate <- tail(dateOptions, n = 1)
 
-# When data was last fetched
+# On boot record time as lastRefresh
 lastRefresh <- paste("Last updated: ", Sys.time())
 
 
@@ -405,7 +407,7 @@ lastRefresh <- paste("Last updated: ", Sys.time())
 # Regions available
 all_regions <- TSData[["deaths"]]$Region
 
-# Todays population - assumed to be constant 
+# Todays population - assumed to be constant once program started
 today_pop <- get.population()
 
 ################################################################################
