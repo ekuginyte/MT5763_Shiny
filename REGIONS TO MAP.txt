@@ -1,8 +1,0 @@
-Regions needing matching
-
- [1] "Antigua and Barbuda"              "Burma"                            "Cabo Verde"                       "Congo (Brazzaville)"             
- [5] "Congo (Kinshasa)"                 "Cote d'Ivoire"                    "Czechia"                          "Diamond Princess"                
- [9] "Eswatini"                         "Holy See"                         "Korea, North"                     "Korea, South"                    
-[13] "MS Zaandam"                       "Saint Kitts and Nevis"            "Saint Vincent and the Grenadines" "Summer Olympics 2020"            
-[17] "Taiwan*"                          "Trinidad and Tobago"              "Tuvalu"                           "United Kingdom"                  
-[21] "US"                               "West Bank and Gaza"               "Winter Olympics 2022"    
