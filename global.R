@@ -3,12 +3,23 @@
 ################################################################################
 ############################ PACKAGE HANDLING ##################################
 ################################################################################
-#packages <- c("robotstxt", "xml2, "maps","shiny", "tidyverse",  "ggmap", 
+#packages <- c("rvest", "robotstxt", "xml2", "maps", "shiny", "tidyverse",  "ggmap", 
 #              "ggiraph", "RColorBrewer", "reshape2", "shinyjs", "shinythemes", 
 #              "shinydashboard", "sf", "rgdal", "shinyWidgets", "mgsub", "data.table", 
 #              "lubridate", "ggpattern", "markdown", "evaluate")
 
-# "rvest", "ggplot2", "leaflet"
+# Install packages required
+#installed_packages <- packages %in% rownames(installed.packages())
+
+#if (any(installed_packages == FALSE)) {
+#  install.packages(packages[!installed_packages])
+#}
+
+# Packages loading
+#invisible(lapply(packages, library, character.only = TRUE))
+
+# "ggplot2", "leaflet"
+library(rvest)
 library(robotstxt)
 library(xml2)
 library(maps)
@@ -30,16 +41,6 @@ library(lubridate)
 library(ggpattern)
 library(markdown)
 library(evaluate)
-
-# Install packages required
-#installed_packages <- packages %in% rownames(installed.packages())
-
-#if (any(installed_packages == FALSE)) {
-#  install.packages(packages[!installed_packages])
-#}
-
-# Packages loading
-#invisible(lapply(packages, library, character.only = TRUE))
 
 ################################################################################
 ############################### FUNCTIONS ######################################
