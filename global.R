@@ -3,20 +3,43 @@
 ################################################################################
 ############################ PACKAGE HANDLING ##################################
 ################################################################################
-packages <- c("shiny", "tidyverse", "robotstxt", "rvest", "maps", "ggmap", 
-              "ggplot2", "ggiraph", "RColorBrewer", "reshape2", "shinyjs", 
-              "shinythemes", "shinydashboard", "sf", "rgdal", "leaflet", 
-              "shinyWidgets", "mgsub", "data.table", "lubridate", "ggpattern")
+#packages <- c("robotstxt", "xml2, "maps","shiny", "tidyverse",  "ggmap", 
+#              "ggiraph", "RColorBrewer", "reshape2", "shinyjs", "shinythemes", 
+#              "shinydashboard", "sf", "rgdal", "shinyWidgets", "mgsub", "data.table", 
+#              "lubridate", "ggpattern", "markdown", "evaluate")
+
+# "rvest", "ggplot2", "leaflet"
+library(robotstxt)
+library(xml2)
+library(maps)
+library(shiny)
+library(tidyverse)
+library(ggmap)
+library(ggiraph)
+library(RColorBrewer)
+library(reshape2)
+library(shinyjs)
+library(shinythemes)
+library(shinydashboard)
+library(sf)
+library(rgdal)
+library(shinyWidgets)
+library(mgsub)
+library(data.table)
+library(lubridate)
+library(ggpattern)
+library(markdown)
+library(evaluate)
 
 # Install packages required
-installed_packages <- packages %in% rownames(installed.packages())
+#installed_packages <- packages %in% rownames(installed.packages())
 
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
+#if (any(installed_packages == FALSE)) {
+#  install.packages(packages[!installed_packages])
+#}
 
 # Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
+#invisible(lapply(packages, library, character.only = TRUE))
 
 ################################################################################
 ############################### FUNCTIONS ######################################
