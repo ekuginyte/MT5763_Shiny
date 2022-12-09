@@ -1,8 +1,13 @@
 ## To do
 
 08/12
-- Recovered data has zeros only??? could we substitute with a different link?
 - Display number of total cases (additional feature)
-- Data page still not working
-- Download button on the map page is working fine, however not on the other pages
-- Unable to stack two download buttons
+
+09/12
+
+- population is fetched every time, talk about assumption of todays is valid for 2 years ago/ relative
+- Annimation works okay for simple graphs not so much for the gloropleth
+- Update the selectors with new data
+- Add summaryu to current data page
+- Add multiple dates in ts query, maybe remove pivot
+- Change get.plot to use get.df2

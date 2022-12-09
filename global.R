@@ -18,10 +18,6 @@ if (any(installed_packages == FALSE)) {
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
 
-# Set a safe maximum date
-lastRefresh <- as.Date(strftime(Sys.time(), "%Y/%m/%d")) - 2
-lastRefresh <- format(lastRefresh, "%m/%d/%y") 
-
 ################################################################################
 ############################### FUNCTIONS ######################################
 ################################################################################
@@ -372,20 +368,32 @@ get.df2 <- function(date, data_type, countries, format, Curr_TSDATA) {
     return(df_0)
   }
 }
+################################################################################
+### scrape.all.data
+
+scrape.all.data <- function(){
+  types = c("confirmed", "deaths", "recovered")
+  TSData <- vector('list', 3)
+  for(type in types){
+    TSData[[type]] = get.time.series.data(type = type)
+  }
+  return(TSData)
+}
 
 ################################################################################
 ############################### Initials #######################################
 ################################################################################
 
 # Initial dataset
-types = c("confirmed", "deaths", "recovered")
-TSData <- vector('list', 3)
-for(type in types){
-  TSData[[type]] = get.time.series.data(type = type)
-}
+#types = c("confirmed", "deaths", "recovered")
+#TSData <- vector('list', 3)
+#for(type in types){
+#  TSData[[type]] = get.time.series.data(type = type)
+#}
+#TSData <- scrape.all.data()
 
 # Extract dates from the time series data
-dateOptions <- names(TSData[["deaths"]][-1])
+#dateOptions <- names(TSData[["deaths"]][-1])
 
 ################################################################################
 ############################### Constants ######################################

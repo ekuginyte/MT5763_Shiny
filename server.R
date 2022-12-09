@@ -1,29 +1,26 @@
 #### Server
 server <- function(input, output) {
   
-  ## GET DATAFRAMES ######################
-  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  
-  # Keeps track of when to automatically refresh
-  auto_refresh <- reactiveTimer(3600000) # 1hr
-  
+  # tracks when to refresh. Either time or button
   RefreshDetect <- reactive({
-    list(input$refresh)
+    list(input$refresh, invalidateLater(3600000))
   })
   
+  # Update data and settings when RefreshDetect
   observeEvent(
      RefreshDetect(), {
-      auto_refresh()
-      #TSData <- get.time.series.data(type = input$map_data_choice)
+      TSData <- scrape.all.data()
       # Extract dates from the time series data
-       dateOptions <- names(TSData[["confirmed"]][-1])
-       maxDate <- tail(dateOptions, n = 1)
-      # Save today's date
-      lastRefresh <- Sys.time()
+      dateOptions <- names(TSData[["confirmed"]][-1])
+      maxDate <- tail(dateOptions, n = 1)
+      all_regions <- TSData[["deaths"]]$Region
+      # Save last refresh time
+      lastRefresh <- paste("Last updated: ", Sys.time())
       # Extract all possible dates
       showNotification("Data Refreshed")
       })
+  
+  output$last_refresh <- renderText({lastRefresh})
   
   ##############################################################################
   ############################# Map plot page ##################################
@@ -110,7 +107,11 @@ server <- function(input, output) {
             Sys.Date(),".csv", sep = "")
     },
     content = function(file) {
-      write.csv(file)
+      write.csv(get.df2(date = as.Date(input$plot_date, "%m/%d/%y"),
+                        data_type = input$plot_data_choice,
+                        countries = input$plot_countries,
+                        format = "l",
+                        Curr_TSDATA = TSData), file)
     }
   )
   

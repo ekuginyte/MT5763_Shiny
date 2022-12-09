@@ -3,9 +3,9 @@ ui <- fluidPage(
   
 # Enable additional features
 shinyjs::useShinyjs(), 
-  
+
   # Navbar structure for ui
-  navbarPage("Covid-19 Tracker", theme = shinytheme("paper"),
+  navbarPage("Covid-19 Tracker", theme = shinytheme("paper"),     
   ################################################################################
   ### Map data page
   tabPanel("Data Map", icon = icon("globe"),
@@ -16,7 +16,7 @@ shinyjs::useShinyjs(),
                                label = "Date:",
                                choices = dateOptions,
                                selected = format(as.Date(
-                               strftime(Sys.time(), "%Y/%m/%d"), ) - 2, "%m/%d/%y"),
+                               strftime(Sys.time(), "%Y/%m/%d"), ) - 3, "%m/%d/%y"),# -3 due to local timezone issues
                                grid = FALSE,
                                animate = animationOptions(interval = 300, loop = FALSE)
                ),
@@ -121,10 +121,10 @@ shinyjs::useShinyjs(),
                            ),
                
                # OUTPUT: Link to download plot dataset as csv
-               downloadLink('download_plot', 'Download Plot Data'),
+               downloadLink('download_plot', 'Download Plot'),
                
                # OUTPUT: Link to download plot shown as png
-               downloadLink('download_plot_data', 'Download Plot')
+               downloadLink('download_plot_data', 'Download Plot Data')
                
              ),
              # Main panel
@@ -137,18 +137,19 @@ shinyjs::useShinyjs(),
           
   ),
   ################################################################################
-  # Floating Refresh Button
-  actionButton(inputId = "refresh", label = "Refresh Data"),
-  
-  ################################################################################
   ### Additional info
   navbarMenu("More",
              tabPanel("About", 
                       fluidRow(column(6,
                                       includeMarkdown("Readme.md")))),
              
-             tabPanel("Current Data Set"
-                      ))
+             tabPanel("Current Data Set",
+                      fluidPage(
+                        textOutput("last_refresh"),
+                        actionButton(inputId = "refresh", label = "Refresh Data")
+                      )
+
+             )
 
 )
-)
+))
