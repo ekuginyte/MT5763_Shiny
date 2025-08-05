@@ -1,5 +1,4 @@
 ### Covid-19 Tracker
-##### By **Moray**
 
 #### Introduction
 
